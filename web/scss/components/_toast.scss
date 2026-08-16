@@ -38,12 +38,10 @@
   min-width: 300px;
   max-width: 500px;
   padding: 16px $spacing-lg;
-  @include gradient-bg(to right, $bg, $bg2);
-  border-radius: 8px;
-  @include border($border-thin, $purple);
+  background: $bg2;
+  @include border($border-thin, $comment);
   @include box-shadow(
-    0 4px 12px rgba(0, 0, 0, 0.3),
-    0 0 0 1px rgba(255, 255, 255, 0.1)
+    0 4px 12px rgba(0, 0, 0, 0.3)
   );
   pointer-events: auto;
   transform: translateY(200px);

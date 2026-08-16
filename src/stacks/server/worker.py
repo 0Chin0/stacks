@@ -222,6 +222,18 @@ class DownloadWorker:
             return True
         return False
 
+    def skip_current(self):
+        """Skip the current download, requeueing it to the end of the queue"""
+        if self.queue.current_download:
+            self.cancel_current = True
+            # Mark for skip (worker loop will requeue to end)
+            with self.queue.lock:
+                self.queue.current_download['_skip'] = True
+            # Don't pause when skipping - queue should continue with the next item
+            self.logger.info(f"Skipping download to end of queue: {self.queue.current_download.get('filename', 'Unknown')}")
+            return True
+        return False
+
     def wait_for_current_download_to_stop(self, timeout=10):
         """Wait for current download to stop (for migration)"""
         start = time.time()
@@ -313,11 +325,15 @@ class DownloadWorker:
             # Check if cancelled
             if self.cancel_current:
                 should_remove = self.queue.current_download.get('_remove', False)
+                should_skip = self.queue.current_download.get('_skip', False)
                 if should_remove:
                     self.logger.info(f"Stopping download after fetch: {filename}")
                     self._cleanup_partial_file(item['md5'])
                     self.queue.current_download = None
                     self.queue.save()
+                elif should_skip:
+                    self.logger.info(f"Skipping download after fetch: {filename}")
+                    self.queue.skip_current_to_end()
                 else:
                     self.logger.info(f"Pausing download after fetch: {filename}")
                     self.queue.requeue_current()
@@ -358,11 +374,15 @@ class DownloadWorker:
                 # Check if cancelled during exception
                 if self.cancel_current:
                     should_remove = self.queue.current_download.get('_remove', False)
+                    should_skip = self.queue.current_download.get('_skip', False)
                     if should_remove:
                         self.logger.info(f"Stopping download after error: {filename}")
                         self._cleanup_partial_file(item['md5'])
                         self.queue.current_download = None
                         self.queue.save()
+                    elif should_skip:
+                        self.logger.info(f"Skipping download after error: {filename}")
+                        self.queue.skip_current_to_end()
                     else:
                         self.logger.info(f"Pausing download after error: {filename}")
                         self.queue.requeue_current()

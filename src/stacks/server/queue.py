@@ -251,3 +251,27 @@ class DownloadQueue:
             self.save()
             self.logger.info(f"Requeued current download: {md5}")
             return True
+
+    def skip_current_to_end(self):
+        """Move current download to the END of the queue (skip)"""
+        with self.lock:
+            if not self.current_download:
+                return False
+
+            md5 = self.current_download['md5']
+
+            # Create queue item from current download
+            item = {
+                'md5': md5,
+                'source': self.current_download.get('source', 'paused'),
+                'added_at': datetime.now().isoformat(),
+                'status': 'queued',
+                'subfolder': self.current_download.get('subfolder')
+            }
+
+            # Add to end of queue
+            self.queue.append(item)
+            self.current_download = None
+            self.save()
+            self.logger.info(f"Skipped current download to end of queue: {md5}")
+            return True

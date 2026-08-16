@@ -927,7 +927,7 @@ class QueueOperations:
         Set a command on all currently active (downloading) items.
 
         Args:
-            command: 'cancel_requeue' or 'cancel_remove'
+            command: 'cancel_requeue', 'cancel_remove', or 'cancel_skip'
 
         Returns:
             Number of downloads that received the command
@@ -1043,6 +1043,65 @@ class QueueOperations:
 
         except Exception as e:
             logger.error(f"Failed to requeue download: {e}")
+            conn.rollback()
+            return False
+        finally:
+            conn.close()
+
+    def skip_download_to_end(self, md5: str, worker_id: str) -> bool:
+        """
+        Skip an active download by requeueing it to the END of the queue.
+
+        Releases the claimed mirror and resets status to 'queued', bumping
+        added_at so it sorts last (queue is ordered by added_at).
+
+        Args:
+            md5: The MD5 hash of the download
+            worker_id: The worker that was processing it
+
+        Returns:
+            True if successful
+        """
+        conn = get_connection()
+        try:
+            cursor = conn.execute(
+                "SELECT assigned_mirror FROM downloads WHERE md5 = ?",
+                (md5,)
+            )
+            row = cursor.fetchone()
+
+            if row and row['assigned_mirror']:
+                try:
+                    mirror = json.loads(row['assigned_mirror'])
+                    domain = self._extract_domain(mirror.get('url', ''))
+                    if not domain:
+                        domain = mirror.get('domain', '')
+                    if domain:
+                        conn.execute(
+                            "DELETE FROM busy_mirrors WHERE domain = ?",
+                            (domain,)
+                        )
+                except (json.JSONDecodeError, KeyError):
+                    pass
+
+            now = datetime.now().isoformat()
+            conn.execute("""
+                UPDATE downloads
+                SET status = 'queued',
+                    assigned_worker = NULL,
+                    assigned_mirror = NULL,
+                    command = NULL,
+                    progress = NULL,
+                    added_at = ?
+                WHERE md5 = ? AND assigned_worker = ?
+            """, (now, md5, worker_id))
+
+            conn.commit()
+            logger.info(f"Skipped download to end of queue: {md5}")
+            return True
+
+        except Exception as e:
+            logger.error(f"Failed to skip download: {e}")
             conn.rollback()
             return False
         finally:

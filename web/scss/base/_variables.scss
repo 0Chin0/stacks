@@ -1,25 +1,45 @@
 // ============================================================================
-// THEME VARIABLES - Dracula Theme
+// THEME VARIABLES - Risotto base16-dark palette
 // ============================================================================
+// Styled after the risotto terminal theme. All colours come from the
+// base16-dark scheme; swap the hex values here to re-theme the whole UI.
 
-// Color palette
-$bg: #282a36;
-$bg2: #181a26;
-$current-line: #44475a;
-$foreground: #f8f8f2;
-$comment: #6272a4;
-$cyan: #8be9fd;
-$green: #50fa7b;
-$green-dark: #4ae270;
-$orange: #ffb86c;
-$pink: #ff79c6;
-$purple: #bd93f9;
-$red: #ff5555;
-$yellow: #f1fa8c;
+// Color palette (base16-dark: chriskempson/base16-default-schemes)
+$base00: #181818; // background
+$base01: #282828; // off background
+$base02: #383838; // inner background
+$base03: #585858; // muted
+$base04: #b8b8b8; // off foreground
+$base05: #d8d8d8; // foreground
+$base06: #e8e8e8;
+$base07: #f8f8f8;
+$base08: #ab4642; // red
+$base09: #dc9656; // orange
+$base0A: #f7ca88; // yellow
+$base0B: #a1b56c; // green
+$base0C: #86c1b9; // cyan
+$base0D: #7cafc2; // blue / link
+$base0E: #ba8baf; // purple / magenta
+$base0F: #a16946; // brown
 
-// Typography
-$font-family-base: "Roboto", sans-serif;
-$font-family-mono: "Courier New", monospace;
+// Semantic aliases
+$bg: $base00;
+$bg2: $base01;
+$current-line: $base02;
+$foreground: $base05;
+$comment: $base03;
+$cyan: $base0C;
+$green: $base0B;
+$green-dark: $base0B;
+$orange: $base09;
+$pink: $base0B;
+$purple: $base0B;
+$red: $base08;
+$yellow: $base0A;
+
+// Typography - all-monospace terminal style
+$font-family-base: "Fira Mono", "Cascadia Code", Consolas, monospace;
+$font-family-mono: "Fira Mono", "Cascadia Code", Consolas, monospace;
 
 // Font sizes
 $font-size-base: 1em;
@@ -38,10 +58,10 @@ $spacing-xl: 30px;
 $spacing-xxl: 40px;
 
 // Border radius
-$border-radius-sm: 5px;
-$border-radius-md: 6px;
-$border-radius-lg: 10px;
-$border-radius-xl: 12px;
+$border-radius-sm: 3px;
+$border-radius-md: 4px;
+$border-radius-lg: 6px;
+$border-radius-xl: 8px;
 $border-radius-pill: 34px;
 
 // Transitions
@@ -53,10 +73,10 @@ $transition-very-slow: 1s;
 // Borders
 $border-thin: 1px;
 $border-medium: 2px;
-$border-thick: 5px;
+$border-thick: 3px;
 
 // Container widths
-$container-max-width: 1200px;
+$container-max-width: 960px;
 
 // Z-index layers
 $z-index-base: 1;

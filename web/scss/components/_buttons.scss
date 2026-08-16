@@ -8,12 +8,12 @@
   @include button-base;
 
   &:hover {
-    background: $yellow;
-    color: $bg;
+    background: $comment;
+    color: $foreground;
   }
 
   &-danger {
-    background: $orange;
+    background: $red;
     color: $bg;
   }
 
@@ -28,7 +28,7 @@
   }
 
   &-warning {
-    background: $red;
+    background: $orange;
     color: $bg;
   }
 

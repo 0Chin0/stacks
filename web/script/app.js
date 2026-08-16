@@ -347,6 +347,28 @@ function removeCurrent() {
     .catch((err) => console.error("Failed to remove current:", err));
 }
 
+function skipCurrent() {
+  apiFetch("/api/queue/current/skip", { method: "POST" })
+    .then((r) => r.json())
+    .then((data) => {
+      if (data.success) {
+        updateStatus();
+        toasts.show({
+          title: "Current Download",
+          message: data.message,
+          type: "success",
+        });
+      } else {
+        toasts.show({
+          title: "Current Download",
+          message: data.message,
+          type: "error",
+        });
+      }
+    })
+    .catch((err) => console.error("Failed to skip current:", err));
+}
+
 function addDownload() {
   const input = document.getElementById("manual-add");
   const value = input.value.trim();
@@ -354,86 +376,7 @@ function addDownload() {
   if (!value) {
     toasts.show({
       title: "Add Download",
-      message: "Please enter an MD5 or URL",
-      type: "error",
-    });
-    return;
-  }
-
-  // Extract MD5 from input
-  const md5 = extractMD5(value);
-
-  if (!md5) {
-    toasts.show({
-      title: "Add Download",
-      message: "No valid MD5 found in input",
-      type: "error",
-    });
-    return;
-  }
-  apiFetch("/api/queue/add", {
-    method: "POST",
-    body: JSON.stringify({
-      md5: md5,
-      source: "manual",
-    }),
-  })
-    .then((r) => {
-      if (r.status === 401 || r.status === 403) {
-        throw new Error("Authentication failed. Please refresh the page.");
-      }
-      if (!r.ok) {
-        throw new Error(`HTTP ${r.status}: ${r.statusText}`);
-      }
-      return r.json();
-    })
-    .then((data) => {
-      if (data.success) {
-        toasts.show({
-          title: "Add Download",
-          message: `Successfully added ${md5} to queue`,
-          type: "success",
-        });
-        input.value = "";
-        updateStatus();
-      } else {
-        toasts.show({
-          title: "Add Download",
-          message: data.message || "Failed to add to queue",
-          type: "error",
-        });
-      }
-    })
-    .catch((err) => {
-      console.error("Failed to add download:", err);
-      toasts.show({
-        title: "Add Download",
-        message: "Error: " + err.message,
-        type: "error",
-      });
-    });
-}
-
-/*
- * toggleBulkAdd() and bulkAddDownloads() added for bulk-add feature.
- * Previously only single-item add was available (addDownload above).
- * Users can now paste multiple MD5s/URLs into a textarea and add them all at once.
- */
-function toggleBulkAdd() {
-  const section = document.getElementById("bulk-add-section");
-  if (section) {
-    section.style.display = section.style.display === "none" ? "flex" : "none";
-  }
-}
-
-function bulkAddDownloads() {
-  const textarea = document.getElementById("bulk-add-input");
-  const value = textarea.value.trim();
-
-  if (!value) {
-    toasts.show({
-      title: "Bulk Add",
-      message: "Please enter MD5 hashes or URLs, one per line",
+      message: "Please enter MD5 hashes or URLs",
       type: "error",
     });
     return;
@@ -457,7 +400,7 @@ function bulkAddDownloads() {
 
   if (items.length === 0) {
     toasts.show({
-      title: "Bulk Add",
+      title: "Add Download",
       message: "No valid MD5 hashes found in input",
       type: "error",
     });
@@ -479,16 +422,16 @@ function bulkAddDownloads() {
     })
     .then((data) => {
       if (data.added > 0) {
-        textarea.value = "";
+        input.value = "";
         if (data.skipped > 0) {
           toasts.show({
-            title: "Bulk Add",
+            title: "Add Download",
             message: `Added ${data.added}, skipped ${data.skipped} (already in queue)` + (invalidLines.length > 0 ? `, ${invalidLines.length} invalid` : ""),
             type: "success",
           });
         } else {
           toasts.show({
-            title: "Bulk Add",
+            title: "Add Download",
             message: `Successfully added ${data.added} item(s) to queue` + (invalidLines.length > 0 ? ` (${invalidLines.length} invalid lines skipped)` : ""),
             type: "success",
           });
@@ -496,20 +439,20 @@ function bulkAddDownloads() {
         updateStatus();
       } else {
         toasts.show({
-          title: "Bulk Add",
+          title: "Add Download",
           message: data.message || "Failed to add items",
           type: "error",
         });
       }
 
       if (invalidLines.length > 0 && data.added > 0) {
-        console.warn("Invalid lines in bulk add:", invalidLines);
+        console.warn("Invalid lines in add:", invalidLines);
       }
     })
     .catch((err) => {
-      console.error("Failed to bulk add:", err);
+      console.error("Failed to add downloads:", err);
       toasts.show({
-        title: "Bulk Add",
+        title: "Add Download",
         message: "Error: " + err.message,
         type: "error",
       });
@@ -1152,9 +1095,10 @@ document.querySelectorAll(".settings-nav li").forEach((item, index) => {
 // Add download button handler
 document.querySelector(".add-item .btn-success").addEventListener("click", addDownload);
 
-// Add download on Enter key
-document.getElementById("manual-add").addEventListener("keypress", (e) => {
-  if (e.key === "Enter") {
+// Add download on Ctrl/Cmd+Enter (plain Enter inserts a newline in the textarea)
+document.getElementById("manual-add").addEventListener("keydown", (e) => {
+  if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+    e.preventDefault();
     addDownload();
   }
 });

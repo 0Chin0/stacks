@@ -10,41 +10,33 @@
   @include flex-between;
   gap: $spacing-sm;
   margin-bottom: $spacing-lg;
-  border-bottom: $border-medium solid $comment;
-  border-top: $border-medium solid $comment;
+  border-bottom: $border-thin solid $comment;
 }
 
 .tab-button {
   background: none;
   border: none;
   color: $foreground;
-  padding: 12px 24px;
+  padding: 10px 20px;
   font-size: $font-size-base;
   font-weight: 600;
   cursor: pointer;
-  border-bottom: 3px solid transparent;
+  border-bottom: 2px solid transparent;
   @include transition(all $transition-fast);
   width: auto;
 
   &:hover {
     color: $cyan;
-    background: rgba(139, 233, 253, 0.1);
   }
 
-    &::before {
-      font-size:$font-size-large;
-    }
+  &::before {
+    font-size: $font-size-large;
+  }
 
   &.active {
-    &[data-tab="settings"]::after {
-      content: "Settings";
-    }
-    &[data-tab="downloads"]::after {
-      content: "Downloads";
-    }
-    &[data-tab="console"]::after {
-      content: "Console";
-    }
+    &[data-tab="settings"]::after { content: "Settings"; }
+    &[data-tab="downloads"]::after { content: "Downloads"; }
+    &[data-tab="console"]::after { content: "Console"; }
     color: $cyan;
     border-bottom-color: $cyan;
   }

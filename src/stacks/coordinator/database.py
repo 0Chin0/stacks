@@ -45,7 +45,7 @@ CREATE TABLE IF NOT EXISTS downloads (
     used_fast_download INTEGER DEFAULT 0,  -- 0 or 1
 
     -- Worker control commands (set by API, read by worker)
-    -- Values: NULL, 'cancel_requeue', 'cancel_remove'
+    -- Values: NULL, 'cancel_requeue', 'cancel_remove', 'cancel_skip'
     command TEXT,
 
     -- Live progress reported by the worker (JSON)

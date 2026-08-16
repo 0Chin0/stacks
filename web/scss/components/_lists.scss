@@ -96,6 +96,13 @@
   }
 }
 
+.item-status-icon.success-icon {
+  color: $green;
+}
+.item-status-icon.error-icon {
+  color: $red;
+}
+
 .retry-btn {
   display: none;
 

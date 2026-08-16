@@ -110,14 +110,14 @@
 
   &.success {
     display: block;
-    background: rgba(80, 250, 123, 0.2);
+    background: $bg2;
     @include border($border-thin, $green);
     color: $green;
   }
 
   &.error {
     display: block;
-    background: rgba(255, 85, 85, 0.2);
+    background: $bg2;
     @include border($border-thin, $red);
     color: $red;
   }

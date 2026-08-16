@@ -141,9 +141,8 @@
 
 // Card base mixin
 @mixin card-base {
-  background: $current-line;
-  border-radius: $border-radius-sm;
-  @include border($border-thick, $comment);
+  background: $bg2;
+  @include border($border-thin, $comment);
 }
 
 // Gradient background mixin

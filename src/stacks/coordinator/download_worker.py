@@ -138,7 +138,7 @@ def download_worker_process(
     queue_ops = QueueOperations()
     config = Config(config_path)
     downloader = None
-    cancel_flag = None  # None, 'cancel_requeue', or 'cancel_remove'
+    cancel_flag = None  # None, 'cancel_requeue', 'cancel_remove', or 'cancel_skip'
 
     # Track last heartbeat / command-check / progress-write times (mutable for closure)
     import time as _time
@@ -165,7 +165,7 @@ def download_worker_process(
             _last_command_check[0] = now
             try:
                 cmd = queue_ops.get_download_command(_current_md5[0])
-                if cmd in ('cancel_requeue', 'cancel_remove'):
+                if cmd in ('cancel_requeue', 'cancel_remove', 'cancel_skip'):
                     cancel_flag = cmd
                     return False
             except Exception:
@@ -355,6 +355,13 @@ def download_worker_process(
             if cancel_flag == 'cancel_remove':
                 worker_logger.info(f"Removing cancelled download: {md5}")
                 queue_ops.remove_active_download(md5, worker_id)
+                _current_md5[0] = None
+                cancel_flag = None
+                continue
+
+            if cancel_flag == 'cancel_skip':
+                worker_logger.info(f"Skipping download to end of queue: {md5}")
+                queue_ops.skip_download_to_end(md5, worker_id)
                 _current_md5[0] = None
                 cancel_flag = None
                 continue

@@ -15,7 +15,7 @@ $font-icon: "remixicon";
     font-weight: $weight;
     font-style: $style;
     font-display: swap;
-    
+
     @if $unicode {
       unicode-range: $unicode;
     }
@@ -25,15 +25,22 @@ $font-icon: "remixicon";
 // Remix Icons 4.7.0
 @include font-face("remixicon", "remixicon");
 
+h1,
+h2,
+h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0 0 $spacing-sm 0;
+}
+
 h1 {
   color: $purple;
-  font-size: $font-size-xxlarge;
+  font-size: $font-size-xlarge;
   margin-bottom: $spacing-xs;
 }
 
 h2 {
   color: $cyan;
-  font-size: 1.3em;
   @include flex-between;
   gap: $spacing-sm;
 }
@@ -48,4 +55,9 @@ h2 {
   margin-bottom: 8px;
   font-size: 12px;
   color: $comment;
+}
+
+a {
+  color: var(--link);
+  &:hover { color: var(--hover); }
 }

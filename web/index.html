@@ -10,7 +10,7 @@
   <body>
     <div class="container">
       <header>
-        <img src="./images/logo.svg" />
+        <div class="site-title">STACKS</div>
       </header>
 
       <nav class="tabs">
@@ -49,13 +49,10 @@
       <div id="downloads-tab" class="tab-content active">
         <div class="add-item">
           <div class="card input-row">
-            <input type="text" id="manual-add" placeholder="Enter an Anna's Archive MD5 or URL..." maxlength="256" />
-            <button data-icon="file-add-line" class="btn btn-success" title="Add to queue"></button>
-            <button class="btn btn-secondary toggle-bulk" onclick="toggleBulkAdd()" title="Bulk add multiple items">v</button>
-          </div>
-          <div id="bulk-add-section" class="card bulk-add-card" style="display:none;">
-            <textarea id="bulk-add-input" placeholder="Paste MD5 hashes or Anna's Archive URLs, one per line:&#10;&#10;1d6fd221af5b9c9bffbd398041013de8&#10;https://annas-archive.gd/md5/2e8fc4b...&#10;3a9f1c7e..." rows="6"></textarea>
-            <button data-icon="file-add-line" class="btn btn-success" onclick="bulkAddDownloads()">Add All</button>
+            <textarea id="manual-add" rows="3" placeholder="Enter one or more Anna's Archive MD5 hashes or URLs, one per line..."></textarea>
+            <div class="input-row__actions">
+              <button data-icon="file-add-line" class="btn btn-success" title="Add to queue"></button>
+            </div>
           </div>
         </div>
 
@@ -65,6 +62,7 @@
             <div class="current-download__header">
               <h2>Currently Downloading</h2>
               <div class="current-download__actions">
+                <button class="btn btn-warning" data-icon="skip-forward-line" id="current-skip-btn" onclick="skipCurrent()" title="Skip download (requeue to end)"></button>
                 <button class="btn btn-primary" data-icon="pause-circle-line" id="current-cancel-btn" onclick="cancelCurrent()" title="Pause download"></button>
                 <button class="btn btn-danger" data-icon="file-close-line" id="current-remove-btn" onclick="removeCurrent()" title="Cancel and remove"></button>
               </div>

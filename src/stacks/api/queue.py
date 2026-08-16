@@ -295,3 +295,35 @@ def api_current_remove():
             'success': False,
             'message': 'No download in progress'
         })
+
+
+@api_bp.route('/api/queue/current/skip', methods=['POST'])
+@require_auth
+def api_current_skip():
+    """Skip the current download (requeue it to the end of the queue)"""
+    if current_app.stacks_multiprocess:
+        ops = get_queue_ops()
+        count = ops.command_active_downloads('cancel_skip')
+        if count > 0:
+            return jsonify({
+                'success': True,
+                'message': 'Skipping current download (requeued to end)'
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'message': 'No download in progress'
+            })
+
+    worker = current_app.stacks_worker
+
+    if worker.skip_current():
+        return jsonify({
+            'success': True,
+            'message': 'Skipping current download (requeued to end)'
+        })
+    else:
+        return jsonify({
+            'success': False,
+            'message': 'No download in progress'
+        })

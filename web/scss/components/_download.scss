@@ -11,22 +11,31 @@
     align-items: center;
     gap: 12px;
     padding: $spacing-xs;
+    margin-bottom: $spacing-sm;
   }
 
-  .add-label {
-    font-size: 18px;
-    color: $foreground;
-    white-space: nowrap;
-  }
-
-  input[type="text"] {
+  textarea {
     flex: 1;
-    padding: 7px;
+    padding: $spacing-sm;
     border-radius: $border-radius-md;
-    @include border($border-thin, $purple);
+    @include border($border-thin, $comment);
     background: $bg2;
     color: $foreground;
+    font-family: $font-family-mono;
     font-size: 14px;
+    resize: vertical;
+    min-height: 68px;
+
+    &:focus {
+      outline: none;
+      border-color: $cyan;
+    }
+  }
+
+  .input-row__actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
   }
 }
 
@@ -78,9 +87,8 @@
   .status-message {
     margin-top: $spacing-xs;
     padding: $spacing-xs $spacing-sm;
-    background: rgba(139, 233, 253, 0.1);
+    background: $bg2;
     border-left: 3px solid $cyan;
-    border-radius: $border-radius-sm;
     font-size: 0.9em;
     color: $cyan;
     font-weight: 500;
@@ -96,10 +104,10 @@
 // Progress bar
 .progress-container {
   width: 100%;
-  height: 24px;
+  height: 22px;
   position: relative;
-  background: rgba(0, 0, 0, 0.3);
-  border-radius: $border-radius-xl;
+  background: $bg2;
+  border: $border-thin solid $comment;
   margin-top: $spacing-md;
   overflow: hidden;
 }
@@ -107,21 +115,9 @@
 .progress-bar {
   height: 100%;
   width: 0%;
-  background: repeating-linear-gradient(45deg, $green 0 48px, $green-dark 48px 84px);
-  background-size: 96px 96px;
-  animation: stripe-slide 2s linear infinite reverse;
+  background: $green;
   @include transition(width 2s linear);
   will-change: width;
-  border-radius: $border-radius-xl;
-}
-
-@keyframes stripe-slide {
-  0% {
-    background-position: 0 -32px;
-  }
-  100% {
-    background-position: 96px -32px;
-  }
 }
 
 .progress-text {

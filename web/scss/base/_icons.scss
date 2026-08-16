@@ -60,6 +60,8 @@
 
   &[data-icon="pause-circle"]:before { content: "\efd5"; }
   &[data-icon="pause-circle-line"]:before { content: "\efd6"; }
+  &[data-icon="skip-forward"]:before { content: "\f143"; }
+  &[data-icon="skip-forward-line"]:before { content: "\f144"; }
   &[data-icon="play-circle"]:before { content: "\f008"; }
   &[data-icon="play-circle-line"]:before { content: "\f009"; }
   &[data-icon="file-add"]:before { content: "\ecc8"; }
