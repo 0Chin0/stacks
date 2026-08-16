@@ -95,6 +95,12 @@ a:hover {
 [data-icon][data-icon=import-line]:before {
   content: "\f447";
 }
+[data-icon][data-icon=refresh]:before {
+  content: "\f063";
+}
+[data-icon][data-icon=refresh-line]:before {
+  content: "\f064";
+}
 [data-icon][data-icon=book-2]:before {
   content: "\ead2";
 }
@@ -320,7 +326,7 @@ header {
 
 .site-title {
   display: inline-block;
-  color: #a1b56c;
+  color: #008F11;
   font-family: "Fira Mono", "Cascadia Code", Consolas, monospace;
   font-size: 2.75rem;
   font-weight: 600;
@@ -479,7 +485,7 @@ header {
 }
 
 .stat-label {
-  color: #a1b56c;
+  color: #008F11;
   font-size: 0.8em;
   display: absolute;
   bottom: 0;
@@ -535,7 +541,7 @@ header {
   color: #f7ca88;
 }
 .log-line .log-date {
-  color: #a1b56c;
+  color: #00FF41;
 }
 .log-line .log-logger {
   color: #585858;
@@ -600,7 +606,7 @@ header {
   margin: 0;
 }
 .current-download .title {
-  font-size: 1.2em;
+  font-size: 1em;
   margin: 10px 0;
   font-weight: 600;
 }
@@ -712,6 +718,7 @@ footer a:hover {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  align-items: flex-start;
 }
 .list-item:last-child {
   border-bottom: none;
@@ -719,6 +726,7 @@ footer a:hover {
 
 .item-info {
   flex: 1;
+  min-width: 0;
 }
 
 .item-title {
@@ -728,9 +736,15 @@ footer a:hover {
   display: flex;
   align-items: center;
   gap: 6px;
+  flex-wrap: wrap;
 }
 .item-title-text {
   flex: 1;
+  min-width: 0;
+  font-size: 0.9em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .item-md5 {
@@ -761,8 +775,11 @@ footer a:hover {
   background: #a1b56c;
   color: #181818;
   border-radius: 3px;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 600;
+  line-height: 1.2;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .item-status {
@@ -771,8 +788,11 @@ footer a:hover {
   background: #dc9656;
   color: #181818;
   border-radius: 3px;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 600;
+  line-height: 1.2;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .item-subfolder {
@@ -782,8 +802,11 @@ footer a:hover {
   background: #86c1b9;
   color: #181818;
   border-radius: 3px;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 600;
+  line-height: 1.2;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 .item-subfolder.visible {
   display: inline;
@@ -826,9 +849,14 @@ footer a:hover {
   text-align: center;
   margin-bottom: 30px;
 }
-.login-wrap .logo img {
-  max-width: 300px;
-  width: 100%;
+.login-wrap .logo .site-title {
+  display: inline-block;
+  color: #008F11;
+  font-family: "Fira Mono", "Cascadia Code", Consolas, monospace;
+  font-size: 2.5rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  line-height: 1.1;
 }
 .login-wrap .form-group {
   margin-bottom: 20px;
@@ -985,7 +1013,7 @@ footer a:hover {
   color: #a1b56c;
 }
 .settings-nav li.active {
-  background: #a1b56c;
+  background: #003B00;
   color: #181818;
 }
 

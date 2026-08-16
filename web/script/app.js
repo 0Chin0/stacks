@@ -937,7 +937,7 @@ function updateQueueList(queue) {
     // Status badge for items not yet ready to download
     const statusTag = clone.querySelector(".item-status");
     if (item.status === "pending_scrape" || item.status === "scraping") {
-      statusTag.textContent = "Fetching info...";
+      statusTag.textContent = "Fetching info";
       statusTag.style.display = "inline";
     }
 
