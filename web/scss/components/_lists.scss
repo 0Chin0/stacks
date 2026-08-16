@@ -46,6 +46,15 @@
   }
 }
 
+.item-index {
+  font-family: $font-family-mono;
+  font-size: 0.85em;
+  color: #008F11;
+  flex-shrink: 0;
+  min-width: 1.5em;
+  font-weight: 600;
+}
+
 .item-md5 {
   font-family: $font-family-mono;
   font-size: $font-size-smaller;

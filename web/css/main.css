@@ -14,7 +14,7 @@ h3 {
 }
 
 h1 {
-  color: #a1b56c;
+  color: #008F11;
   font-size: 1.5em;
   margin-bottom: 5px;
 }
@@ -239,10 +239,10 @@ a:hover {
 }
 
 .success-icon {
-  color: #a1b56c;
+  color: #008F11;
 }
 .success-icon-icon {
-  color: #a1b56c;
+  color: #008F11;
 }
 
 .error-icon {
@@ -275,7 +275,7 @@ a:hover {
   --base08: #ab4642;
   --base09: #dc9656;
   --base0A: #f7ca88;
-  --base0B: #a1b56c;
+  --base0B: #008F11;
   --base0C: #86c1b9;
   --base0D: #7cafc2;
   --base0E: #ba8baf;
@@ -326,7 +326,7 @@ header {
 
 .site-title {
   display: inline-block;
-  color: #008F11;
+  color: #00FF41;
   font-family: "Fira Mono", "Cascadia Code", Consolas, monospace;
   font-size: 2.75rem;
   font-weight: 600;
@@ -383,12 +383,21 @@ header {
   color: #d8d8d8;
 }
 .btn-success {
-  background: #a1b56c;
+  background: #008F11;
   color: #181818;
 }
 .btn-warning {
   background: #dc9656;
   color: #181818;
+}
+.btn--sm {
+  padding: 2px 6px;
+  font-size: 10px;
+  border-radius: 3px;
+  line-height: 1.2;
+}
+.btn--sm::before {
+  font-size: 1em;
 }
 .btn:disabled {
   background: #585858;
@@ -396,7 +405,7 @@ header {
 }
 
 .badge {
-  background: #a1b56c;
+  background: #008F11;
   color: #181818;
   padding: 4px 12px;
   border-radius: 8px;
@@ -475,7 +484,7 @@ header {
 .stat-value {
   font-size: 1.5em;
   font-weight: bold;
-  color: #a1b56c;
+  color: #008F11;
 }
 .stat-value.error {
   color: #ab4642;
@@ -485,7 +494,7 @@ header {
 }
 
 .stat-label {
-  color: #008F11;
+  color: #00FF41;
   font-size: 0.8em;
   display: absolute;
   bottom: 0;
@@ -589,7 +598,7 @@ header {
   color: #d8d8d8;
   padding: 20px;
   margin-bottom: 20px;
-  border-color: #a1b56c;
+  border-color: #008F11;
 }
 .current-download__header {
   display: flex;
@@ -602,7 +611,7 @@ header {
   gap: 10px;
 }
 .current-download h2 {
-  color: #a1b56c;
+  color: #008F11;
   margin: 0;
 }
 .current-download .title {
@@ -643,7 +652,7 @@ header {
 .progress-bar {
   height: 100%;
   width: 0%;
-  background: #a1b56c;
+  background: #008F11;
   transition: width 2s linear;
   will-change: width;
 }
@@ -689,7 +698,7 @@ footer a {
   text-decoration: none;
 }
 footer a:hover {
-  color: #a1b56c;
+  color: #008F11;
   text-decoration: underline;
 }
 
@@ -747,6 +756,15 @@ footer a:hover {
   white-space: nowrap;
 }
 
+.item-index {
+  font-family: "Fira Mono", "Cascadia Code", Consolas, monospace;
+  font-size: 0.85em;
+  color: #008F11;
+  flex-shrink: 0;
+  min-width: 1.5em;
+  font-weight: 600;
+}
+
 .item-md5 {
   font-family: "Fira Mono", "Cascadia Code", Consolas, monospace;
   font-size: 0.85em;
@@ -772,7 +790,7 @@ footer a:hover {
 .item-filetype {
   display: none;
   padding: 2px 6px;
-  background: #a1b56c;
+  background: #008F11;
   color: #181818;
   border-radius: 3px;
   font-size: 10px;
@@ -813,7 +831,7 @@ footer a:hover {
 }
 
 .item-status-icon.success-icon {
-  color: #a1b56c;
+  color: #008F11;
 }
 
 .item-status-icon.error-icon {
@@ -828,7 +846,7 @@ footer a:hover {
 }
 
 #history-list a {
-  color: #a1b56c;
+  color: #008F11;
   transition: color 0.2s ease-in-out;
 }
 #history-list a:hover {
@@ -851,7 +869,7 @@ footer a:hover {
 }
 .login-wrap .logo .site-title {
   display: inline-block;
-  color: #008F11;
+  color: #00FF41;
   font-family: "Fira Mono", "Cascadia Code", Consolas, monospace;
   font-size: 2.5rem;
   font-weight: 600;
@@ -864,7 +882,7 @@ footer a:hover {
 .login-wrap label {
   display: block;
   margin-bottom: 8px;
-  color: #a1b56c;
+  color: #008F11;
   font-weight: 600;
   font-size: 0.9em;
 }
@@ -887,7 +905,7 @@ footer a:hover {
   padding: 12px;
   border: none;
   border-radius: 4px;
-  background: #a1b56c;
+  background: #008F11;
   color: #181818;
   font-size: 1em;
   font-weight: 600;
@@ -895,7 +913,7 @@ footer a:hover {
   margin-top: 10px;
 }
 .login-wrap .btn:hover {
-  background: #a1b56c;
+  background: #008F11;
 }
 .login-wrap .btn:disabled {
   background: #585858;
@@ -1010,10 +1028,10 @@ footer a:hover {
 }
 .settings-nav li:hover {
   background: #383838;
-  color: #a1b56c;
+  color: #008F11;
 }
 .settings-nav li.active {
-  background: #003B00;
+  background: #008F11;
   color: #181818;
 }
 
@@ -1029,7 +1047,7 @@ footer a:hover {
   margin-bottom: 30px;
 }
 .settings-section h3 {
-  color: #a1b56c;
+  color: #008F11;
   font-size: 1.2em;
   margin-bottom: 15px;
   padding-bottom: 10px;
@@ -1093,8 +1111,8 @@ footer a:hover {
 .test-result.success {
   display: block;
   background: #282828;
-  border: 1px solid #a1b56c;
-  color: #a1b56c;
+  border: 1px solid #008F11;
+  color: #008F11;
 }
 .test-result.error {
   display: block;
@@ -1124,7 +1142,7 @@ footer a:hover {
   cursor: pointer;
 }
 .switch input:checked + .slider {
-  background: #a1b56c;
+  background: #008F11;
 }
 .switch input:checked + .slider::before {
   transform: translateX(30px);
@@ -1169,7 +1187,7 @@ footer a:hover {
   transition: background-color 0.25s ease-in-out, color 0.25s ease-in-out;
 }
 .toggle-button input:checked + .checkmark {
-  background-color: #a1b56c;
+  background-color: #008F11;
   color: #585858;
 }
 .toggle-button .checkmark::after {
@@ -1214,7 +1232,7 @@ footer a:hover {
   align-items: center;
   gap: 6px;
   padding: 4px 8px 4px 12px;
-  background: #a1b56c;
+  background: #008F11;
   color: #181818;
   border-radius: 34px;
   font-size: 0.8em;
@@ -1222,7 +1240,7 @@ footer a:hover {
   transition: background 0.2s;
 }
 .tag-item:hover {
-  background: rgb(55.9336349925%, 64.742081448%, 32.5912518854%);
+  background: rgb(0%, 40.0784313725%, 4.7645687646%);
 }
 
 .tag-text {
@@ -1331,10 +1349,10 @@ footer a:hover {
   opacity: 0;
 }
 .toast-success {
-  border-left: 7px solid #a1b56c;
+  border-left: 7px solid #008F11;
 }
 .toast-success .toast-progress {
-  background: #a1b56c;
+  background: #008F11;
 }
 .toast-error {
   border-left: 7px solid #ab4642;

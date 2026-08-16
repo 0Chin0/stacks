@@ -32,6 +32,17 @@
     color: $bg;
   }
 
+  &--sm {
+    padding: 2px 6px;
+    font-size: 10px;
+    border-radius: 3px;
+    line-height: 1.2;
+
+    &::before {
+      font-size: 1em;
+    }
+  }
+
   &:disabled {
     background: $comment;
     cursor: not-allowed;

@@ -914,8 +914,11 @@ function updateQueueList(queue) {
   const template = document.getElementById("queue-item-template");
 
   // Add each item
-  queue.forEach((item) => {
+  queue.forEach((item, index) => {
     const clone = template.content.cloneNode(true);
+
+    // Position number
+    clone.querySelector(".item-index").textContent = index + 1;
 
     // Title: prefer title, then filename, fall back to MD5
     const displayName = item.title || item.filename || item.md5;
