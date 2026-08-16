@@ -1,0 +1,89 @@
+﻿diff --git a/src/stacks/api/queue.py b/src/stacks/api/queue.py
+index d59143a..a2956a3 100755
+--- a/src/stacks/api/queue.py
++++ b/src/stacks/api/queue.py
+@@ -121,6 +121,84 @@ def api_queue_add():
+     })
+ 
+ 
++@api_bp.route('/api/queue/add_bulk', methods=['POST'])
++@require_auth_with_permissions(allow_downloader=True)
++def api_queue_add_bulk():
++    """
++    Add multiple items to the queue at once.
++
++    Previously only single-item add was available (POST /api/queue/add).
++    This endpoint handles bulk add so users don't need to submit each MD5 individually.
++
++    Request body:
++        {"items": [{"md5": "...", "source": "...", "subfolder": "..."}, ...]}
++
++    Returns:
++        {success, message, added, skipped, errors: [{md5, error}, ...]}
++    """
++    data = request.json
++    items = data.get('items', [])
++
++    if not items or not isinstance(items, list):
++        return jsonify({'success': False, 'error': 'Items array required'}), 400
++
++    added = 0
++    skipped = 0
++    errors = []
++
++    config = current_app.stacks_config
++
++    for item in items:
++        raw_md5 = item.get('md5', '').strip()
++        if not raw_md5:
++            errors.append({'md5': raw_md5, 'error': 'Empty md5'})
++            continue
++
++        from stacks.utils.md5utils import extract_md5
++        extracted_md5 = extract_md5(raw_md5)
++        if not extracted_md5:
++            errors.append({'md5': raw_md5, 'error': 'Invalid MD5 format'})
++            continue
++
++        subfolder = item.get('subfolder')
++        validated_subfolder = None
++        if subfolder:
++            allowed_subdirs = config.get('downloads', 'subdirectories', default=None)
++            if allowed_subdirs and isinstance(allowed_subdirs, list) and subfolder in allowed_subdirs:
++                validated_subfolder = subfolder
++            elif subfolder:
++                logger.warning(f"Subfolder '{subfolder}' not in allowed list, reverting to default")
++
++        if current_app.stacks_multiprocess:
++            ops = get_queue_ops()
++            success, message = ops.add_download(
++                extracted_md5,
++                source=item.get('source'),
++                subfolder=validated_subfolder
++            )
++        else:
++            q = current_app.stacks_queue
++            success, message = q.add(
++                extracted_md5,
++                source=item.get('source'),
++                subfolder=validated_subfolder
++            )
++
++        if success:
++            added += 1
++        else:
++            skipped += 1
++            errors.append({'md5': extracted_md5, 'error': message})
++
++    return jsonify({
++        'success': added > 0,
++        'message': f"Added {added}, skipped {skipped} item(s)",
++        'added': added,
++        'skipped': skipped,
++        'errors': errors
++    })
++
++
+ @api_bp.route('/api/queue/pause', methods=['POST'])
+ @require_auth
+ def api_queue_pause():

@@ -251,7 +251,7 @@ def download_worker_process(
                         worker_logger.info("Using fast download")
                         filepath = downloader.download_direct(
                             fd_result,
-                            title=title,
+                            title=filename or title,
                             resume_attempts=resume_attempts,
                             md5=md5,
                             subfolder=subfolder
@@ -305,7 +305,7 @@ def download_worker_process(
                                 mirror['url'],
                                 mirror.get('type', 'external_mirror'),
                                 md5,
-                                title=title,
+                                title=filename or title,
                                 resume_attempts=resume_attempts,
                                 subfolder=subfolder
                             )

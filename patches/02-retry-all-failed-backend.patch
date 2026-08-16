@@ -1,0 +1,142 @@
+﻿diff --git a/src/stacks/api/history.py b/src/stacks/api/history.py
+index ac63398..ef4559c 100755
+--- a/src/stacks/api/history.py
++++ b/src/stacks/api/history.py
+@@ -62,3 +62,26 @@ def api_history_retry():
+         'success': success,
+         'message': message
+     })
++
++
++@api_bp.route('/api/history/retry_all', methods=['POST'])
++@require_auth_with_permissions(allow_downloader=False)
++def api_history_retry_all():
++    """
++    Retry ALL failed downloads at once.
++
++    Previously only single-item retry was available (POST /api/history/retry).
++    This endpoint handles bulk retry so users don't need to click each item individually.
++    """
++    if current_app.stacks_multiprocess:
++        ops = get_queue_ops()
++        success, message, count = ops.retry_all_failed()
++    else:
++        q = current_app.stacks_queue
++        success, message, count = q.retry_all_failed()
++
++    return jsonify({
++        'success': success,
++        'message': message,
++        'count': count
++    })
+diff --git a/src/stacks/coordinator/queue_ops.py b/src/stacks/coordinator/queue_ops.py
+index d400704..e6bbb36 100644
+--- a/src/stacks/coordinator/queue_ops.py
++++ b/src/stacks/coordinator/queue_ops.py
+@@ -818,6 +818,52 @@ class QueueOperations:
+         finally:
+             conn.close()
+ 
++    def retry_all_failed(self) -> tuple[bool, str, int]:
++        """
++        Retry ALL failed downloads in the queue.
++
++        Originally there was only a single-item retry (retry_failed above).
++        This method handles bulk retry in one atomic SQL UPDATE.
++
++        Returns:
++            Tuple of (success: bool, message: str, count: int)
++        """
++        conn = get_connection()
++        try:
++            # Count how many are currently failed
++            cursor = conn.execute(
++                "SELECT COUNT(*) AS cnt FROM downloads WHERE status = 'failed'"
++            )
++            row = cursor.fetchone()
++            count = row['cnt'] if row else 0
++
++            if count == 0:
++                return True, "No failed downloads to retry", 0
++
++            # Reset all failed downloads back to pending_scrape
++            conn.execute("""
++                UPDATE downloads
++                SET status = 'pending_scrape',
++                    error = NULL,
++                    completed_at = NULL,
++                    success = NULL,
++                    assigned_worker = NULL,
++                    assigned_mirror = NULL,
++                    added_at = ?
++                WHERE status = 'failed'
++            """, (datetime.now().isoformat(),))
++
++            conn.commit()
++            logger.info(f"Retrying all failed downloads: {count} item(s)")
++            return True, f"Retrying {count} failed download(s)", count
++
++        except Exception as e:
++            logger.error(f"Failed to retry all downloads: {e}")
++            conn.rollback()
++            return False, str(e), 0
++        finally:
++            conn.close()
++
+     def clear_history(self) -> int:
+         """
+         Clear all completed/failed downloads from history.
+diff --git a/src/stacks/server/queue.py b/src/stacks/server/queue.py
+index f249639..2dad09a 100755
+--- a/src/stacks/server/queue.py
++++ b/src/stacks/server/queue.py
+@@ -185,6 +185,49 @@ class DownloadQueue:
+             self.logger.info(f"Retrying failed download: {md5}")
+             return True, "Added to queue for retry"
+ 
++    def retry_all_failed(self):
++        """
++        Retry ALL failed downloads by removing them from history
++        and re-adding them to the queue.
++
++        Originally only a single-item retry existed (retry_failed).
++        This method handles bulk retry in one pass.
++
++        Returns:
++            Tuple of (success: bool, message: str, count: int)
++        """
++        with self.lock:
++            # Collect all failed items
++            failed_items = [
++                item for item in self.history
++                if not item.get('success', False)
++            ]
++            count = len(failed_items)
++
++            if count == 0:
++                return True, "No failed downloads to retry", 0
++
++            # Remove all failed items from history and add to queue
++            failed_md5s = {item['md5'] for item in failed_items}
++            self.history = [
++                item for item in self.history
++                if item['md5'] not in failed_md5s
++            ]
++
++            for item in failed_items:
++                new_item = {
++                    'md5': item['md5'],
++                    'source': 'retry',
++                    'added_at': datetime.now().isoformat(),
++                    'status': 'queued',
++                    'subfolder': item.get('subfolder')
++                }
++                self.queue.append(new_item)
++
++            self.save()
++            self.logger.info(f"Retrying all failed downloads: {count} item(s)")
++            return True, f"Retrying {count} failed download(s)", count
++
+     def requeue_current(self):
+         """Move current download back to front of queue"""
+         with self.lock:

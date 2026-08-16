@@ -1,0 +1,146 @@
+// ============================================================================
+// TOAST NOTIFICATIONS
+// ============================================================================
+
+@use '../base' as *;
+
+// Toast container
+.toast-container {
+  position: fixed;
+  top: $spacing-lg;
+  right: $spacing-lg;
+  z-index: $z-index-tooltip;
+  @include flex-column;
+  gap: $spacing-sm;
+  pointer-events: none;
+
+  @include respond-to("mobile") {
+    left: $spacing-sm;
+    right: $spacing-sm;
+    top: $spacing-sm;
+  }
+}
+
+// Toast base mixin
+@mixin toast-variant($color) {
+  border-left: 7px solid $color;
+
+  .toast-progress {
+    background: $color;
+  }
+}
+
+// Toast base styles
+.toast {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 300px;
+  max-width: 500px;
+  padding: 16px $spacing-lg;
+  @include gradient-bg(to right, $bg, $bg2);
+  border-radius: 8px;
+  @include border($border-thin, $purple);
+  @include box-shadow(
+    0 4px 12px rgba(0, 0, 0, 0.3),
+    0 0 0 1px rgba(255, 255, 255, 0.1)
+  );
+  pointer-events: auto;
+  transform: translateY(200px);
+  opacity: 0;
+  @include transition(transform $transition-normal ease-in-out, opacity $transition-normal ease-in-out);
+  position: relative;
+
+  &.show {
+    transform: translateY(0);
+    opacity: 1;
+  }
+
+  &.hide {
+    transform: translateX(400px);
+    opacity: 0;
+  }
+
+  // Toast variants
+  &-success {
+    @include toast-variant($green);
+  }
+
+  &-error {
+    @include toast-variant($red);
+  }
+
+  &-warning {
+    @include toast-variant($orange);
+  }
+
+  &-info {
+    @include toast-variant($cyan);
+  }
+
+  @include respond-to("mobile") {
+    min-width: unset;
+    max-width: unset;
+    width: 100%;
+  }
+}
+
+// Toast icon
+.toast-icon {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  @include flex-center;
+  font-size: 20px;
+}
+
+// Toast content
+.toast-content {
+  flex: 1;
+  @include flex-column;
+  gap: 4px;
+}
+
+.toast-title {
+  font-weight: 600;
+  font-size: 14px;
+  color: $foreground;
+  line-height: 1.4;
+}
+
+.toast-message {
+  font-size: 13px;
+  color: $foreground;
+  line-height: 1.4;
+}
+
+// Toast close button
+.toast-close {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  @include flex-center;
+  background: transparent;
+  border: none;
+  color: $foreground;
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+  padding: 0;
+  @include transition(color $transition-fast);
+
+  &:hover {
+    color: $foreground;
+  }
+}
+
+// Progress bar
+.toast-progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  border-radius: 0 8px 0 8px;
+  transform-origin: left;
+  width: 100%;
+}

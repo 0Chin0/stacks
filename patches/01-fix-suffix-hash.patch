@@ -1,0 +1,18 @@
+﻿diff --git a/src/stacks/downloader/html.py b/src/stacks/downloader/html.py
+index 6929d7f..86b0264 100755
+--- a/src/stacks/downloader/html.py
++++ b/src/stacks/downloader/html.py
+@@ -236,7 +236,12 @@ def _get_download_links_single_domain(d, md5, domain):
+         elif d.include_hash == "prefix":
+             filename = f"{md5} - {filename}"
+         elif d.include_hash == "suffix":
+-            filename = f"{filename} - {md5}"
++            # Insert hash before the extension to preserve file type
++            stem, _, ext = filename.rpartition('.')
++            if stem:
++                filename = f"{stem} - {md5}.{ext}"
++            else:
++                filename = f"{md5} - {filename}"
+ 
+ 
+         links = []

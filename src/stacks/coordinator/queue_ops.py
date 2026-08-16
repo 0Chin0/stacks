@@ -329,12 +329,12 @@ class QueueOperations:
                 """, (error or 'No mirrors found', datetime.now().isoformat(), md5))
             else:
                 # Scraping succeeded - move to queued
-                # Set title to filename if not already set
+                # Always set title from scraped filename (carries include_hash)
                 conn.execute("""
                     UPDATE downloads
                     SET status = 'queued',
                         filename = ?,
-                        title = COALESCE(title, ?),
+                        title = ?,
                         mirrors = ?,
                         assigned_worker = NULL
                     WHERE md5 = ? AND status = 'scraping'
@@ -815,6 +815,52 @@ class QueueOperations:
             logger.error(f"Failed to retry download: {e}")
             conn.rollback()
             return False, str(e)
+        finally:
+            conn.close()
+
+    def retry_all_failed(self) -> tuple[bool, str, int]:
+        """
+        Retry ALL failed downloads in the queue.
+
+        Originally there was only a single-item retry (retry_failed above).
+        This method handles bulk retry in one atomic SQL UPDATE.
+
+        Returns:
+            Tuple of (success: bool, message: str, count: int)
+        """
+        conn = get_connection()
+        try:
+            # Count how many are currently failed
+            cursor = conn.execute(
+                "SELECT COUNT(*) AS cnt FROM downloads WHERE status = 'failed'"
+            )
+            row = cursor.fetchone()
+            count = row['cnt'] if row else 0
+
+            if count == 0:
+                return True, "No failed downloads to retry", 0
+
+            # Reset all failed downloads back to pending_scrape
+            conn.execute("""
+                UPDATE downloads
+                SET status = 'pending_scrape',
+                    error = NULL,
+                    completed_at = NULL,
+                    success = NULL,
+                    assigned_worker = NULL,
+                    assigned_mirror = NULL,
+                    added_at = ?
+                WHERE status = 'failed'
+            """, (datetime.now().isoformat(),))
+
+            conn.commit()
+            logger.info(f"Retrying all failed downloads: {count} item(s)")
+            return True, f"Retrying {count} failed download(s)", count
+
+        except Exception as e:
+            logger.error(f"Failed to retry all downloads: {e}")
+            conn.rollback()
+            return False, str(e), 0
         finally:
             conn.close()
 

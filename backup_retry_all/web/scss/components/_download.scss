@@ -1,0 +1,157 @@
+// ============================================================================
+// DOWNLOAD COMPONENTS
+// ============================================================================
+
+@use '../base' as *;
+
+// Add download section
+.add-item {
+  .card.input-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: $spacing-xs;
+  }
+
+  .add-label {
+    font-size: 18px;
+    color: $foreground;
+    white-space: nowrap;
+  }
+
+  input[type="text"] {
+    flex: 1;
+    padding: 7px;
+    border-radius: $border-radius-md;
+    @include border($border-thin, $purple);
+    background: $bg2;
+    color: $foreground;
+    font-size: 14px;
+  }
+}
+
+// Current download section
+#current-download {
+  display: none;
+
+  &.visible {
+    display: block;
+  }
+}
+
+.current-download {
+  @include card-base;
+  color: $foreground;
+  padding: $spacing-lg;
+  margin-bottom: $spacing-lg;
+  border-color: $pink;
+
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+  }
+
+  &__actions {
+    display: flex;
+    gap: 10px;
+  }
+
+  h2 {
+    color: $pink;
+    margin: 0;
+  }
+
+  .title {
+    font-size: $font-size-large;
+    margin: $spacing-sm 0;
+    font-weight: 600;
+  }
+
+  .md5 {
+    font-family: $font-family-mono;
+    opacity: 0.8;
+    font-size: 0.9em;
+  }
+
+  .status-message {
+    margin-top: $spacing-xs;
+    padding: $spacing-xs $spacing-sm;
+    background: rgba(139, 233, 253, 0.1);
+    border-left: 3px solid $cyan;
+    border-radius: $border-radius-sm;
+    font-size: 0.9em;
+    color: $cyan;
+    font-weight: 500;
+  }
+
+  .time {
+    margin-top: $spacing-sm;
+    opacity: 0.9;
+    font-size: 0.9em;
+  }
+}
+
+// Progress bar
+.progress-container {
+  width: 100%;
+  height: 24px;
+  position: relative;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: $border-radius-xl;
+  margin-top: $spacing-md;
+  overflow: hidden;
+}
+
+.progress-bar {
+  height: 100%;
+  width: 0%;
+  background: repeating-linear-gradient(45deg, $green 0 48px, $green-dark 48px 84px);
+  background-size: 96px 96px;
+  animation: stripe-slide 2s linear infinite reverse;
+  @include transition(width 2s linear);
+  will-change: width;
+  border-radius: $border-radius-xl;
+}
+
+@keyframes stripe-slide {
+  0% {
+    background-position: 0 -32px;
+  }
+  100% {
+    background-position: 96px -32px;
+  }
+}
+
+.progress-text {
+  font-size: 0.8em;
+  opacity: 0.9;
+  font-family: $font-family-mono;
+  display: grid;
+  grid-template-columns: auto auto auto;
+  gap: 5px;
+  align-items: center;
+  background-color: $bg;
+  border-radius: 10px;
+  max-width: 500px;
+  min-width: 250px;
+  padding: 3px 10px 3px 10px;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 30;
+
+  .progress-percent {
+    text-align: right;
+  }
+
+  .progress-bytes {
+    text-align: left;
+  }
+
+  .progress-speed {
+    text-align: right;
+  }
+}

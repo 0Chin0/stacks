@@ -1,0 +1,113 @@
+// ============================================================================
+// LISTS (QUEUE & HISTORY)
+// ============================================================================
+
+@use '../base' as *;
+
+.list {
+  min-height: 100px;
+  max-height: 800px;
+  overflow-y: auto;
+  @include custom-scrollbar;
+}
+
+.list-item {
+  padding: $spacing-md $spacing-lg;
+  border-bottom: $border-thin solid $comment;
+  @include flex-between;
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.item-info {
+  flex: 1;
+}
+
+.item-title {
+  font-weight: 600;
+  color: $foreground;
+  margin-bottom: $spacing-xs;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  &-text {
+    flex: 1;
+  }
+}
+
+.item-md5 {
+  font-family: $font-family-mono;
+  font-size: $font-size-smaller;
+  color: $comment;
+}
+
+.item-time {
+  font-size: $font-size-small;
+  color: $comment;
+  margin-top: $spacing-xs;
+}
+
+.item-error {
+  color: $red;
+  font-size: $font-size-smaller;
+  margin-top: $spacing-xs;
+  display: none;
+
+  &.visible {
+    display: block;
+  }
+}
+
+.item-filetype {
+  display: none;
+  padding: 2px 6px;
+  background: $purple;
+  color: $bg;
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.item-status {
+  display: none;
+  padding: 2px 6px;
+  background: $orange;
+  color: $bg;
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.item-subfolder {
+  display: none;
+  margin-left: 8px;
+  padding: 2px 6px;
+  background: $cyan;
+  color: $bg;
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: 600;
+
+  &.visible {
+    display: inline;
+  }
+}
+
+.retry-btn {
+  display: none;
+
+  &.visible {
+    display: inline-block;
+  }
+}
+
+#history-list a {
+  color: $pink;
+  transition: color 0.2s ease-in-out;
+  &:hover {
+    color: $cyan;
+  }
+}

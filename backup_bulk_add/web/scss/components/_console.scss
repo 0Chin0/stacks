@@ -1,0 +1,58 @@
+// ============================================================================
+// CONSOLE/LOGS
+// ============================================================================
+
+@use '../base' as *;
+
+#console {
+  width: 100%;
+  min-height: 300px;
+  max-height: 500px;
+  font-family: $font-family-mono;
+  background: $bg2;
+  color: $foreground;
+  padding: $spacing-sm;
+  overflow-y: scroll;
+  font-size: 13px;
+  line-height: 1.4em;
+  @include custom-scrollbar;
+
+  span {
+    display: inline;
+    width: 100%;
+  }
+}
+
+.log-line {
+  span {
+    display: inline;
+  }
+
+  &:hover {
+    background: $current-line;
+  }
+
+  .info {
+    color: $cyan;
+  }
+
+  .warning {
+    color: $orange;
+  }
+
+  .error {
+    color: $red;
+  }
+
+  .debug {
+    color: $yellow;
+  }
+
+  .log-date {
+    color: $purple;
+  }
+
+  .log-logger {
+    color: $comment;
+  }
+}

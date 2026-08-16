@@ -414,6 +414,108 @@ function addDownload() {
     });
 }
 
+/*
+ * toggleBulkAdd() and bulkAddDownloads() added for bulk-add feature.
+ * Previously only single-item add was available (addDownload above).
+ * Users can now paste multiple MD5s/URLs into a textarea and add them all at once.
+ */
+function toggleBulkAdd() {
+  const section = document.getElementById("bulk-add-section");
+  if (section) {
+    section.style.display = section.style.display === "none" ? "flex" : "none";
+  }
+}
+
+function bulkAddDownloads() {
+  const textarea = document.getElementById("bulk-add-input");
+  const value = textarea.value.trim();
+
+  if (!value) {
+    toasts.show({
+      title: "Bulk Add",
+      message: "Please enter MD5 hashes or URLs, one per line",
+      type: "error",
+    });
+    return;
+  }
+
+  const lines = value.split("\n");
+  const items = [];
+  const invalidLines = [];
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (!line) continue;
+
+    const md5 = extractMD5(line);
+    if (md5) {
+      items.push({ md5: md5, source: "manual" });
+    } else {
+      invalidLines.push((i + 1) + ": " + line.substring(0, 50));
+    }
+  }
+
+  if (items.length === 0) {
+    toasts.show({
+      title: "Bulk Add",
+      message: "No valid MD5 hashes found in input",
+      type: "error",
+    });
+    return;
+  }
+
+  apiFetch("/api/queue/add_bulk", {
+    method: "POST",
+    body: JSON.stringify({ items: items }),
+  })
+    .then((r) => {
+      if (r.status === 401 || r.status === 403) {
+        throw new Error("Authentication failed. Please refresh the page.");
+      }
+      if (!r.ok) {
+        throw new Error(`HTTP ${r.status}: ${r.statusText}`);
+      }
+      return r.json();
+    })
+    .then((data) => {
+      if (data.added > 0) {
+        textarea.value = "";
+        if (data.skipped > 0) {
+          toasts.show({
+            title: "Bulk Add",
+            message: `Added ${data.added}, skipped ${data.skipped} (already in queue)` + (invalidLines.length > 0 ? `, ${invalidLines.length} invalid` : ""),
+            type: "success",
+          });
+        } else {
+          toasts.show({
+            title: "Bulk Add",
+            message: `Successfully added ${data.added} item(s) to queue` + (invalidLines.length > 0 ? ` (${invalidLines.length} invalid lines skipped)` : ""),
+            type: "success",
+          });
+        }
+        updateStatus();
+      } else {
+        toasts.show({
+          title: "Bulk Add",
+          message: data.message || "Failed to add items",
+          type: "error",
+        });
+      }
+
+      if (invalidLines.length > 0 && data.added > 0) {
+        console.warn("Invalid lines in bulk add:", invalidLines);
+      }
+    })
+    .catch((err) => {
+      console.error("Failed to bulk add:", err);
+      toasts.show({
+        title: "Bulk Add",
+        message: "Error: " + err.message,
+        type: "error",
+      });
+    });
+}
+
 // ============================================================================
 // API FUNCTIONS - HISTORY
 // ============================================================================
@@ -443,6 +545,34 @@ function retryFailed(md5) {
       }
     })
     .catch((err) => console.error("Failed to retry download:", err));
+}
+
+/*
+ * Added retryAllFailed() for bulk retry of all failed downloads at once.
+ * Previously only single-item retry was possible (retryFailed above).
+ * Users can now retry hundreds of failed downloads with one click.
+ */
+function retryAllFailed() {
+  if (!confirm("Retry all failed downloads?")) return;
+  apiFetch("/api/history/retry_all", { method: "POST" })
+    .then((r) => r.json())
+    .then((data) => {
+      if (data.success) {
+        toasts.show({
+          title: "Retry All",
+          message: data.message || `Retrying ${data.count} download(s)`,
+          type: "success",
+        });
+        updateStatus();
+      } else {
+        toasts.show({
+          title: "Retry All",
+          message: data.message || "Failed to retry",
+          type: "error",
+        });
+      }
+    })
+    .catch((err) => console.error("Failed to retry all:", err));
 }
 
 // ============================================================================

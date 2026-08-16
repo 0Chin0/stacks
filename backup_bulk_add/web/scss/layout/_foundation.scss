@@ -1,0 +1,60 @@
+// ============================================================================
+// GLOBAL LAYOUT & RESET
+// ============================================================================
+
+@use '../base' as *;
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: $font-family-base;
+  background: $bg;
+  color: $foreground;
+  padding: $spacing-sm;
+  line-height: 1;
+  height: 100%;
+  margin: 0;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  overflow-y: scroll;
+}
+
+.container {
+  max-width: $container-max-width;
+  margin: 0 auto;
+}
+
+// Header
+header {
+  text-align: center;
+
+  img {
+    max-width: 500px;
+  }
+}
+
+.version {
+  position: absolute;
+  display: block;
+  top: -1.5em;
+  right: 0;
+  font-size: $font-size-small;
+  color: $comment;
+  opacity: 0;
+  @include transition(opacity $transition-very-slow);
+
+  &.visible {
+    opacity: 1;
+  }
+}
+
+// Empty state
+.empty-state {
+  text-align: center;
+  padding: $spacing-xxl $spacing-lg;
+  color: $purple;
+}

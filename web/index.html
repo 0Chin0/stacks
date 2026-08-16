@@ -50,7 +50,12 @@
         <div class="add-item">
           <div class="card input-row">
             <input type="text" id="manual-add" placeholder="Enter an Anna's Archive MD5 or URL..." maxlength="256" />
-            <button data-icon="file-add-line" class="btn btn-success"></button>
+            <button data-icon="file-add-line" class="btn btn-success" title="Add to queue"></button>
+            <button class="btn btn-secondary toggle-bulk" onclick="toggleBulkAdd()" title="Bulk add multiple items">v</button>
+          </div>
+          <div id="bulk-add-section" class="card bulk-add-card" style="display:none;">
+            <textarea id="bulk-add-input" placeholder="Paste MD5 hashes or Anna's Archive URLs, one per line:&#10;&#10;1d6fd221af5b9c9bffbd398041013de8&#10;https://annas-archive.gd/md5/2e8fc4b...&#10;3a9f1c7e..." rows="6"></textarea>
+            <button data-icon="file-add-line" class="btn btn-success" onclick="bulkAddDownloads()">Add All</button>
           </div>
         </div>
 
@@ -101,6 +106,7 @@
           <section class="card">
             <div class="card-header">
               <h2>Recent History <span class="badge" id="history-count">0</span></h2>
+              <button class="btn btn-warning" data-icon="refresh-line" onclick="retryAllFailed()" title="Retry all failed downloads"></button>
               <button class="btn btn-danger" data-icon="delete-bin-line" onclick="clearHistory()"></button>
             </div>
             <div id="history-list" class="list">

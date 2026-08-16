@@ -1,0 +1,91 @@
+// ============================================================================
+// CARDS & CONTAINERS
+// ============================================================================
+
+@use '../base' as *;
+
+.card-holder {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: $spacing-md;
+  margin-bottom: $spacing-lg;
+}
+
+.card {
+  @include card-base;
+  margin-bottom: $spacing-sm;
+  min-width: 300px;
+}
+
+.settings-card {
+  @include card-base;
+  margin-bottom: $spacing-sm;
+  min-width: 300px;
+}
+
+
+.card-header {
+  padding: $spacing-sm;
+  border-bottom: $border-medium solid $comment;
+  @include flex-between;
+
+  &__actions {
+    display: flex;
+    gap: 10px;
+  }
+}
+
+// Statistics cards
+.stats {
+  margin-left: auto;
+  overflow: hidden;
+  padding-left: $spacing-lg;
+  text-align: center;
+  display: grid;
+  grid-template-columns: auto auto;
+  gap: 3px;
+
+  @include respond-to("tablet") {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: max-content;
+    gap: 0;
+  }
+}
+
+.stat-card {
+  @include respond-to("tablet") {
+    border-radius: 25px 0 0 20px;
+    @include gradient-bg(90deg, $current-line, $bg);
+    border-left: $border-medium solid $purple;
+    @include box-shadow(-10px 0 10px $bg2);
+    padding: $spacing-xs;
+    width: 120px;
+  }
+
+  &.hidden {
+    display: none;
+  }
+}
+
+.stat-value {
+  font-size: $font-size-xlarge;
+  font-weight: bold;
+  color: $green;
+
+  &.error {
+    color: $red;
+  }
+
+  &.cyan {
+    color: $cyan;
+  }
+}
+
+.stat-label {
+  color: $purple;
+  font-size: $font-size-small;
+  display: absolute;
+  bottom: 0;
+  right: 0;
+}

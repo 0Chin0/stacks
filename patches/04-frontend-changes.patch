@@ -1,0 +1,235 @@
+﻿diff --git a/web/css/main.css b/web/css/main.css
+index 363d6d3..6cf5a83 100755
+--- a/web/css/main.css
++++ b/web/css/main.css
+@@ -211,6 +211,9 @@ h2 {
+   height: 0.9em;
+   vertical-align: -0.125em;
+ }
++[data-icon][data-icon=refresh-line]:before {
++  content: "\f064";
++}
+ 
+ .icon {
+   width: 0.8em;
+@@ -536,6 +539,46 @@ header img {
+   font-size: 14px;
+ }
+ 
++.bulk-add-card {
++  display: -webkit-box;
++  display: -ms-flexbox;
++  display: flex;
++  -webkit-box-orient: vertical;
++  -webkit-box-direction: normal;
++      -ms-flex-direction: column;
++          flex-direction: column;
++  gap: 10px;
++  padding: 10px;
++  margin-top: 10px;
++}
++.bulk-add-card textarea {
++  width: 100%;
++  min-height: 120px;
++  padding: 10px;
++  border-radius: 6px;
++  border: 1px solid #bd93f9;
++  background: #181a26;
++  color: #f8f8f2;
++  font-family: inherit;
++  font-size: 13px;
++  resize: vertical;
++  -webkit-box-sizing: border-box;
++          box-sizing: border-box;
++}
++.bulk-add-card textarea:focus {
++  outline: none;
++  border-color: #ff79c6;
++}
++.bulk-add-card .btn-success {
++  -ms-flex-item-align: start;
++      align-self: flex-start;
++}
++.toggle-bulk {
++  font-size: 12px;
++  padding: 4px 8px;
++  cursor: pointer;
++}
++
+ #current-download {
+   display: none;
+ }
+diff --git a/web/index.html b/web/index.html
+index 344f8d4..647bd43 100755
+--- a/web/index.html
++++ b/web/index.html
+@@ -50,7 +50,12 @@
+         <div class="add-item">
+           <div class="card input-row">
+             <input type="text" id="manual-add" placeholder="Enter an Anna's Archive MD5 or URL..." maxlength="256" />
+-            <button data-icon="file-add-line" class="btn btn-success"></button>
++            <button data-icon="file-add-line" class="btn btn-success" title="Add to queue"></button>
++            <button class="btn btn-secondary toggle-bulk" onclick="toggleBulkAdd()" title="Bulk add multiple items">v</button>
++          </div>
++          <div id="bulk-add-section" class="card bulk-add-card" style="display:none;">
++            <textarea id="bulk-add-input" placeholder="Paste MD5 hashes or Anna's Archive URLs, one per line:&#10;&#10;1d6fd221af5b9c9bffbd398041013de8&#10;https://annas-archive.gd/md5/2e8fc4b...&#10;3a9f1c7e..." rows="6"></textarea>
++            <button data-icon="file-add-line" class="btn btn-success" onclick="bulkAddDownloads()">Add All</button>
+           </div>
+         </div>
+ 
+@@ -101,6 +106,7 @@
+           <section class="card">
+             <div class="card-header">
+               <h2>Recent History <span class="badge" id="history-count">0</span></h2>
++              <button class="btn btn-warning" data-icon="refresh-line" onclick="retryAllFailed()" title="Retry all failed downloads"></button>
+               <button class="btn btn-danger" data-icon="delete-bin-line" onclick="clearHistory()"></button>
+             </div>
+             <div id="history-list" class="list">
+diff --git a/web/script/app.js b/web/script/app.js
+index 78b421d..3db0cc8 100755
+--- a/web/script/app.js
++++ b/web/script/app.js
+@@ -414,6 +414,108 @@ function addDownload() {
+     });
+ }
+ 
++/*
++ * toggleBulkAdd() and bulkAddDownloads() added for bulk-add feature.
++ * Previously only single-item add was available (addDownload above).
++ * Users can now paste multiple MD5s/URLs into a textarea and add them all at once.
++ */
++function toggleBulkAdd() {
++  const section = document.getElementById("bulk-add-section");
++  if (section) {
++    section.style.display = section.style.display === "none" ? "flex" : "none";
++  }
++}
++
++function bulkAddDownloads() {
++  const textarea = document.getElementById("bulk-add-input");
++  const value = textarea.value.trim();
++
++  if (!value) {
++    toasts.show({
++      title: "Bulk Add",
++      message: "Please enter MD5 hashes or URLs, one per line",
++      type: "error",
++    });
++    return;
++  }
++
++  const lines = value.split("\n");
++  const items = [];
++  const invalidLines = [];
++
++  for (let i = 0; i < lines.length; i++) {
++    const line = lines[i].trim();
++    if (!line) continue;
++
++    const md5 = extractMD5(line);
++    if (md5) {
++      items.push({ md5: md5, source: "manual" });
++    } else {
++      invalidLines.push((i + 1) + ": " + line.substring(0, 50));
++    }
++  }
++
++  if (items.length === 0) {
++    toasts.show({
++      title: "Bulk Add",
++      message: "No valid MD5 hashes found in input",
++      type: "error",
++    });
++    return;
++  }
++
++  apiFetch("/api/queue/add_bulk", {
++    method: "POST",
++    body: JSON.stringify({ items: items }),
++  })
++    .then((r) => {
++      if (r.status === 401 || r.status === 403) {
++        throw new Error("Authentication failed. Please refresh the page.");
++      }
++      if (!r.ok) {
++        throw new Error(`HTTP ${r.status}: ${r.statusText}`);
++      }
++      return r.json();
++    })
++    .then((data) => {
++      if (data.added > 0) {
++        textarea.value = "";
++        if (data.skipped > 0) {
++          toasts.show({
++            title: "Bulk Add",
++            message: `Added ${data.added}, skipped ${data.skipped} (already in queue)` + (invalidLines.length > 0 ? `, ${invalidLines.length} invalid` : ""),
++            type: "success",
++          });
++        } else {
++          toasts.show({
++            title: "Bulk Add",
++            message: `Successfully added ${data.added} item(s) to queue` + (invalidLines.length > 0 ? ` (${invalidLines.length} invalid lines skipped)` : ""),
++            type: "success",
++          });
++        }
++        updateStatus();
++      } else {
++        toasts.show({
++          title: "Bulk Add",
++          message: data.message || "Failed to add items",
++          type: "error",
++        });
++      }
++
++      if (invalidLines.length > 0 && data.added > 0) {
++        console.warn("Invalid lines in bulk add:", invalidLines);
++      }
++    })
++    .catch((err) => {
++      console.error("Failed to bulk add:", err);
++      toasts.show({
++        title: "Bulk Add",
++        message: "Error: " + err.message,
++        type: "error",
++      });
++    });
++}
++
+ // ============================================================================
+ // API FUNCTIONS - HISTORY
+ // ============================================================================
+@@ -445,6 +547,34 @@ function retryFailed(md5) {
+     .catch((err) => console.error("Failed to retry download:", err));
+ }
+ 
++/*
++ * Added retryAllFailed() for bulk retry of all failed downloads at once.
++ * Previously only single-item retry was possible (retryFailed above).
++ * Users can now retry hundreds of failed downloads with one click.
++ */
++function retryAllFailed() {
++  if (!confirm("Retry all failed downloads?")) return;
++  apiFetch("/api/history/retry_all", { method: "POST" })
++    .then((r) => r.json())
++    .then((data) => {
++      if (data.success) {
++        toasts.show({
++          title: "Retry All",
++          message: data.message || `Retrying ${data.count} download(s)`,
++          type: "success",
++        });
++        updateStatus();
++      } else {
++        toasts.show({
++          title: "Retry All",
++          message: data.message || "Failed to retry",
++          type: "error",
++        });
++      }
++    })
++    .catch((err) => console.error("Failed to retry all:", err));
++}
++
+ // ============================================================================
+ // API FUNCTIONS - SETTINGS
+ // ============================================================================

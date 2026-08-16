@@ -1,0 +1,51 @@
+// ============================================================================
+// TYPOGRAPHY
+// ============================================================================
+
+@use 'variables' as *;
+@use 'mixins' as *;
+
+$font-path: "fonts" !default;
+$font-icon: "remixicon";
+
+@mixin font-face($family, $file, $weight: 400, $style: normal, $unicode: null) {
+  @font-face {
+    font-family: $family;
+    src: url("../#{$font-path}/#{$file}.woff2") format("woff2");
+    font-weight: $weight;
+    font-style: $style;
+    font-display: swap;
+    
+    @if $unicode {
+      unicode-range: $unicode;
+    }
+  }
+}
+
+// Remix Icons 4.7.0
+@include font-face("remixicon", "remixicon");
+
+h1 {
+  color: $purple;
+  font-size: $font-size-xxlarge;
+  margin-bottom: $spacing-xs;
+}
+
+h2 {
+  color: $cyan;
+  font-size: 1.3em;
+  @include flex-between;
+  gap: $spacing-sm;
+}
+
+.subtitle {
+  color: $comment;
+  font-size: 0.82em;
+}
+
+.comment {
+  margin-top: 3px;
+  margin-bottom: 8px;
+  font-size: 12px;
+  color: $comment;
+}

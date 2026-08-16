@@ -1,0 +1,88 @@
+// ============================================================================
+// LOGIN PAGE
+// ============================================================================
+
+@use '../base' as *;
+
+.login-wrap {
+  padding: $spacing-lg;
+  font-family: $font-family-base;
+  background: $bg;
+  color: $foreground;
+  @include flex-center;
+  min-height: 100vh;
+
+  .logo {
+    text-align: center;
+    margin-bottom: $spacing-xl;
+
+    img {
+      max-width: 300px;
+      width: 100%;
+    }
+  }
+
+  .form-group {
+    margin-bottom: $spacing-lg;
+  }
+
+  label {
+    display: block;
+    margin-bottom: 8px;
+    color: $purple;
+    font-weight: 600;
+    font-size: 0.9em;
+  }
+
+  input {
+    width: 100%;
+    padding: 12px;
+    @include input-base;
+  }
+
+  .btn {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: $border-radius-md;
+    background: $purple;
+    color: $bg;
+    font-size: $font-size-base;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: $spacing-sm;
+
+    &:hover {
+      background: $pink;
+    }
+
+    &:disabled {
+      background: $comment;
+      cursor: not-allowed;
+    }
+  }
+
+  .error {
+    background: rgba(255, 85, 85, 0.2);
+    @include border($border-thin, $red);
+    color: $red;
+    padding: 12px;
+    border-radius: $border-radius-md;
+    margin-bottom: $spacing-lg;
+    font-size: 0.9em;
+    display: none;
+
+    &.show {
+      display: block;
+    }
+  }
+}
+
+.login-container {
+  width: 100%;
+  max-width: 400px;
+  @include card-base;
+  border-radius: $border-radius-lg;
+  padding: $spacing-xxl;
+  @include box-shadow(0 10px 30px rgba(0, 0, 0, 0.5));
+}

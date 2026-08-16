@@ -1,0 +1,121 @@
+// ============================================================================
+// TAG INPUT COMPONENT
+// ============================================================================
+
+@use '../base' as *;
+@use 'sass:color';
+
+.tag-input-container {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+}
+
+.tag-input-wrapper {
+  width: 100%;
+  max-width: 600px;
+  min-height: 80px;
+  padding: $spacing-sm;
+  background: $bg;
+  @include border($border-medium, $comment, $border-radius-md);
+  @include transition(border-color $transition-normal);
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+
+  &:focus-within {
+    border-color: $cyan;
+  }
+}
+
+.tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-xs;
+  min-height: 0;
+}
+
+.tag-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px 4px 12px;
+  background: $purple;
+  color: $bg;
+  border-radius: $border-radius-pill;
+  font-size: $font-size-small;
+  font-weight: 600;
+  @include transition(background $transition-fast);
+
+  &:hover {
+    background: color.adjust($purple, $lightness: -8%);
+  }
+}
+
+.tag-text {
+  line-height: 1.4;
+  user-select: none;
+}
+
+.tag-remove {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  color: $bg;
+  @include transition(background $transition-fast);
+
+  &::before {
+    font-size: 14px;
+  }
+
+  &:hover {
+    background: rgba(0, 0, 0, 0.2);
+  }
+
+  &:active {
+    transform: scale(0.9);
+  }
+}
+
+.tag-input-row {
+  display: flex;
+  gap: $spacing-sm;
+  align-items: center;
+}
+
+.tag-input-field {
+  flex: 1;
+  padding: $spacing-xs $spacing-sm;
+  background: transparent;
+  border: none;
+  color: $foreground;
+  font-size: $font-size-base;
+  outline: none;
+
+  &::placeholder {
+    color: $comment;
+  }
+}
+
+.tag-add-btn {
+  flex-shrink: 0;
+  padding: 6px 12px;
+  font-size: 0.85em;
+
+  &::before {
+    font-size: 1.2em;
+  }
+}
+
+.tag-count {
+  color: $comment;
+  font-size: $font-size-small;
+  margin-top: -2px;
+}

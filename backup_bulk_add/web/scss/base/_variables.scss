@@ -1,0 +1,70 @@
+// ============================================================================
+// THEME VARIABLES - Dracula Theme
+// ============================================================================
+
+// Color palette
+$bg: #282a36;
+$bg2: #181a26;
+$current-line: #44475a;
+$foreground: #f8f8f2;
+$comment: #6272a4;
+$cyan: #8be9fd;
+$green: #50fa7b;
+$green-dark: #4ae270;
+$orange: #ffb86c;
+$pink: #ff79c6;
+$purple: #bd93f9;
+$red: #ff5555;
+$yellow: #f1fa8c;
+
+// Typography
+$font-family-base: "Roboto", sans-serif;
+$font-family-mono: "Courier New", monospace;
+
+// Font sizes
+$font-size-base: 1em;
+$font-size-small: 0.8em;
+$font-size-smaller: 0.85em;
+$font-size-large: 1.2em;
+$font-size-xlarge: 1.5em;
+$font-size-xxlarge: 2.75em;
+
+// Spacing
+$spacing-xs: 5px;
+$spacing-sm: 10px;
+$spacing-md: 15px;
+$spacing-lg: 20px;
+$spacing-xl: 30px;
+$spacing-xxl: 40px;
+
+// Border radius
+$border-radius-sm: 5px;
+$border-radius-md: 6px;
+$border-radius-lg: 10px;
+$border-radius-xl: 12px;
+$border-radius-pill: 34px;
+
+// Transitions
+$transition-fast: 0.2s;
+$transition-normal: 0.3s;
+$transition-slow: 0.5s;
+$transition-very-slow: 1s;
+
+// Borders
+$border-thin: 1px;
+$border-medium: 2px;
+$border-thick: 5px;
+
+// Container widths
+$container-max-width: 1200px;
+
+// Z-index layers
+$z-index-base: 1;
+$z-index-dropdown: 100;
+$z-index-modal: 1000;
+$z-index-tooltip: 10000;
+
+// Breakpoints
+$breakpoint-mobile: 768px;
+$breakpoint-tablet: 1000px;
+$breakpoint-desktop: 1200px;

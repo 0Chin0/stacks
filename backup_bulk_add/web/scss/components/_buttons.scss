@@ -1,0 +1,52 @@
+// ============================================================================
+// BUTTONS & BADGES
+// ============================================================================
+
+@use '../base' as *;
+
+.btn {
+  @include button-base;
+
+  &:hover {
+    background: $yellow;
+    color: $bg;
+  }
+
+  &-danger {
+    background: $orange;
+    color: $bg;
+  }
+
+  &-secondary {
+    background: $comment;
+    color: $foreground;
+  }
+
+  &-success {
+    background: $green;
+    color: $bg;
+  }
+
+  &-warning {
+    background: $red;
+    color: $bg;
+  }
+
+  &:disabled {
+    background: $comment;
+    cursor: not-allowed;
+  }
+}
+
+// Badges
+.badge {
+  @include badge($green);
+
+  &.error {
+    background: $red;
+  }
+
+  &.info {
+    background: $cyan;
+  }
+}

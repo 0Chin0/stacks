@@ -1,0 +1,177 @@
+// ============================================================================
+// REUSABLE MIXINS
+// ============================================================================
+
+@use 'variables' as *;
+
+// Flexbox mixins
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@mixin flex-between {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+@mixin flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
+// Custom scrollbar
+@mixin custom-scrollbar($width: 10px) {
+  &::-webkit-scrollbar {
+    width: $width;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: $current-line;
+    box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.5);
+  }
+
+  &::-webkit-scrollbar-thumb {
+    border-radius: 3px;
+    background: $comment;
+    box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.5);
+    border: $border-thin solid $bg;
+  }
+}
+
+// Transition mixin
+@mixin transition($properties...) {
+  transition: $properties;
+}
+
+// Border mixin
+@mixin border($width, $color, $radius: 0) {
+  border: $width solid $color;
+  @if $radius > 0 {
+    border-radius: $radius;
+  }
+}
+
+// Shadow mixin
+@mixin box-shadow($shadow...) {
+  box-shadow: $shadow;
+}
+
+// Responsive breakpoint mixin
+@mixin respond-to($breakpoint) {
+  @if $breakpoint == "mobile" {
+    @media screen and (max-width: $breakpoint-mobile) {
+      @content;
+    }
+  } @else if $breakpoint == "tablet" {
+    @media screen and (min-width: $breakpoint-tablet) {
+      @content;
+    }
+  } @else if $breakpoint == "desktop" {
+    @media screen and (min-width: $breakpoint-desktop) {
+      @content;
+    }
+  }
+}
+
+// Icon mask mixin
+@mixin icon-mask($url, $size: 0.9em) {
+  background: currentColor;
+  mask: url($url) no-repeat center;
+  -webkit-mask: url($url) no-repeat center;
+  mask-size: contain;
+  -webkit-mask-size: contain;
+  width: $size;
+  height: $size;
+  vertical-align: -0.125em;
+}
+
+// State color mixin
+@mixin state-color($color) {
+  color: $color;
+  &-icon {
+    color: $color;
+  }
+}
+
+// Button base mixin
+@mixin button-base {
+  padding: $spacing-xs $spacing-sm;
+  border: none;
+  border-radius: $border-radius-md;
+  cursor: pointer;
+  font-size: 0.9em;
+  font-weight: 600;
+  @include transition(background $transition-slow, color $transition-slow);
+
+  &:active {
+    transform: scale(0.98);
+  }
+  // Make sure remixicons are larger for buttons
+  &::before {
+    font-size: 1.5em;
+  }
+}
+
+// Badge base mixin
+@mixin badge($bg-color) {
+  background: $bg-color;
+  color: $bg;
+  padding: 4px 12px;
+  border-radius: $border-radius-xl;
+  font-size: $font-size-smaller;
+  font-weight: 600;
+}
+
+// Input base mixin
+@mixin input-base {
+  padding: $spacing-sm;
+  background: $bg;
+  @include border($border-medium, $comment, $border-radius-md);
+  color: $foreground;
+  font-size: $font-size-base;
+
+  &:focus {
+    outline: none;
+    border-color: $cyan;
+  }
+}
+
+// Card base mixin
+@mixin card-base {
+  background: $current-line;
+  border-radius: $border-radius-sm;
+  @include border($border-thick, $comment);
+}
+
+// Gradient background mixin
+@mixin gradient-bg($deg, $color1, $color2) {
+  background: linear-gradient($deg, $color1, $color2);
+}
+
+// Text truncate
+@mixin text-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// Absolute center
+@mixin absolute-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+// Overlay
+@mixin overlay($bg-color: rgba(0, 0, 0, 0.5)) {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: $bg-color;
+}

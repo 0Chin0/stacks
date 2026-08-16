@@ -1,0 +1,560 @@
+﻿diff --git a/docker-compose.yml b/docker-compose.yml
+index f80eacd..610f6b7 100755
+--- a/docker-compose.yml
++++ b/docker-compose.yml
+@@ -15,9 +15,9 @@ services:
+     volumes:
+       # REQUIRED: Change these paths to match your system
+       # For Windows, use / instead of \, for instance C:/path/to/downloads
+-      - "/path/to/config:/opt/stacks/config"       # Configuration folder
+-      - "/path/to/download:/opt/stacks/download"   # Downloaded files
+-      - "/path/to/logs:/opt/stacks/logs"           # Log files
++      - "X:/AnnasArchive-Downloader-Stacks/config:/opt/stacks/config"       # Configuration folder
++      - "X:/AnnasArchive-Downloader-Stacks/download:/opt/stacks/download"   # Downloaded files
++      - "X:/AnnasArchive-Downloader-Stacks/logs:/opt/stacks/logs"           # Log files
+ 
+       # OPTIONAL: Separate incomplete folder (requires setting in Stacks UI)
+       # Uncomment and set incomplete_folder_path to "/incomplete" in the UI
+diff --git a/src/stacks/api/history.py b/src/stacks/api/history.py
+index ac63398..ef4559c 100755
+--- a/src/stacks/api/history.py
++++ b/src/stacks/api/history.py
+@@ -62,3 +62,26 @@ def api_history_retry():
+         'success': success,
+         'message': message
+     })
++
++
++@api_bp.route('/api/history/retry_all', methods=['POST'])
++@require_auth_with_permissions(allow_downloader=False)
++def api_history_retry_all():
++    """
++    Retry ALL failed downloads at once.
++
++    Previously only single-item retry was available (POST /api/history/retry).
++    This endpoint handles bulk retry so users don't need to click each item individually.
++    """
++    if current_app.stacks_multiprocess:
++        ops = get_queue_ops()
++        success, message, count = ops.retry_all_failed()
++    else:
++        q = current_app.stacks_queue
++        success, message, count = q.retry_all_failed()
++
++    return jsonify({
++        'success': success,
++        'message': message,
++        'count': count
++    })
+diff --git a/src/stacks/api/queue.py b/src/stacks/api/queue.py
+index d59143a..a2956a3 100755
+--- a/src/stacks/api/queue.py
++++ b/src/stacks/api/queue.py
+@@ -121,6 +121,84 @@ def api_queue_add():
+     })
+ 
+ 
++@api_bp.route('/api/queue/add_bulk', methods=['POST'])
++@require_auth_with_permissions(allow_downloader=True)
++def api_queue_add_bulk():
++    """
++    Add multiple items to the queue at once.
++
++    Previously only single-item add was available (POST /api/queue/add).
++    This endpoint handles bulk add so users don't need to submit each MD5 individually.
++
++    Request body:
++        {"items": [{"md5": "...", "source": "...", "subfolder": "..."}, ...]}
++
++    Returns:
++        {success, message, added, skipped, errors: [{md5, error}, ...]}
++    """
++    data = request.json
++    items = data.get('items', [])
++
++    if not items or not isinstance(items, list):
++        return jsonify({'success': False, 'error': 'Items array required'}), 400
++
++    added = 0
++    skipped = 0
++    errors = []
++
++    config = current_app.stacks_config
++
++    for item in items:
++        raw_md5 = item.get('md5', '').strip()
++        if not raw_md5:
++            errors.append({'md5': raw_md5, 'error': 'Empty md5'})
++            continue
++
++        from stacks.utils.md5utils import extract_md5
++        extracted_md5 = extract_md5(raw_md5)
++        if not extracted_md5:
++            errors.append({'md5': raw_md5, 'error': 'Invalid MD5 format'})
++            continue
++
++        subfolder = item.get('subfolder')
++        validated_subfolder = None
++        if subfolder:
++            allowed_subdirs = config.get('downloads', 'subdirectories', default=None)
++            if allowed_subdirs and isinstance(allowed_subdirs, list) and subfolder in allowed_subdirs:
++                validated_subfolder = subfolder
++            elif subfolder:
++                logger.warning(f"Subfolder '{subfolder}' not in allowed list, reverting to default")
++
++        if current_app.stacks_multiprocess:
++            ops = get_queue_ops()
++            success, message = ops.add_download(
++                extracted_md5,
++                source=item.get('source'),
++                subfolder=validated_subfolder
++            )
++        else:
++            q = current_app.stacks_queue
++            success, message = q.add(
++                extracted_md5,
++                source=item.get('source'),
++                subfolder=validated_subfolder
++            )
++
++        if success:
++            added += 1
++        else:
++            skipped += 1
++            errors.append({'md5': extracted_md5, 'error': message})
++
++    return jsonify({
++        'success': added > 0,
++        'message': f"Added {added}, skipped {skipped} item(s)",
++        'added': added,
++        'skipped': skipped,
++        'errors': errors
++    })
++
++
+ @api_bp.route('/api/queue/pause', methods=['POST'])
+ @require_auth
+ def api_queue_pause():
+diff --git a/src/stacks/coordinator/download_worker.py b/src/stacks/coordinator/download_worker.py
+index 9fc78e4..e5ac565 100644
+--- a/src/stacks/coordinator/download_worker.py
++++ b/src/stacks/coordinator/download_worker.py
+@@ -251,7 +251,7 @@ def download_worker_process(
+                         worker_logger.info("Using fast download")
+                         filepath = downloader.download_direct(
+                             fd_result,
+-                            title=title,
++                            title=filename or title,
+                             resume_attempts=resume_attempts,
+                             md5=md5,
+                             subfolder=subfolder
+@@ -305,7 +305,7 @@ def download_worker_process(
+                                 mirror['url'],
+                                 mirror.get('type', 'external_mirror'),
+                                 md5,
+-                                title=title,
++                                title=filename or title,
+                                 resume_attempts=resume_attempts,
+                                 subfolder=subfolder
+                             )
+diff --git a/src/stacks/coordinator/queue_ops.py b/src/stacks/coordinator/queue_ops.py
+index d400704..ef13761 100644
+--- a/src/stacks/coordinator/queue_ops.py
++++ b/src/stacks/coordinator/queue_ops.py
+@@ -329,12 +329,12 @@ class QueueOperations:
+                 """, (error or 'No mirrors found', datetime.now().isoformat(), md5))
+             else:
+                 # Scraping succeeded - move to queued
+-                # Set title to filename if not already set
++                # Always set title from scraped filename (carries include_hash)
+                 conn.execute("""
+                     UPDATE downloads
+                     SET status = 'queued',
+                         filename = ?,
+-                        title = COALESCE(title, ?),
++                        title = ?,
+                         mirrors = ?,
+                         assigned_worker = NULL
+                     WHERE md5 = ? AND status = 'scraping'
+@@ -818,6 +818,52 @@ class QueueOperations:
+         finally:
+             conn.close()
+ 
++    def retry_all_failed(self) -> tuple[bool, str, int]:
++        """
++        Retry ALL failed downloads in the queue.
++
++        Originally there was only a single-item retry (retry_failed above).
++        This method handles bulk retry in one atomic SQL UPDATE.
++
++        Returns:
++            Tuple of (success: bool, message: str, count: int)
++        """
++        conn = get_connection()
++        try:
++            # Count how many are currently failed
++            cursor = conn.execute(
++                "SELECT COUNT(*) AS cnt FROM downloads WHERE status = 'failed'"
++            )
++            row = cursor.fetchone()
++            count = row['cnt'] if row else 0
++
++            if count == 0:
++                return True, "No failed downloads to retry", 0
++
++            # Reset all failed downloads back to pending_scrape
++            conn.execute("""
++                UPDATE downloads
++                SET status = 'pending_scrape',
++                    error = NULL,
++                    completed_at = NULL,
++                    success = NULL,
++                    assigned_worker = NULL,
++                    assigned_mirror = NULL,
++                    added_at = ?
++                WHERE status = 'failed'
++            """, (datetime.now().isoformat(),))
++
++            conn.commit()
++            logger.info(f"Retrying all failed downloads: {count} item(s)")
++            return True, f"Retrying {count} failed download(s)", count
++
++        except Exception as e:
++            logger.error(f"Failed to retry all downloads: {e}")
++            conn.rollback()
++            return False, str(e), 0
++        finally:
++            conn.close()
++
+     def clear_history(self) -> int:
+         """
+         Clear all completed/failed downloads from history.
+diff --git a/src/stacks/coordinator/scraper_process.py b/src/stacks/coordinator/scraper_process.py
+index 8474406..e54253d 100644
+--- a/src/stacks/coordinator/scraper_process.py
++++ b/src/stacks/coordinator/scraper_process.py
+@@ -107,11 +107,17 @@ def scraper_process(config_path: Path, stop_event: Event) -> None:
+                     'password': config.get('proxy', 'password')
+                 }
+ 
++                # Get file naming config (was missing in scraper ΓÇö only download_worker had it)
++                prefer_title_naming = config.get('downloads', 'prefer_title_naming', default=False)
++                include_hash = config.get('downloads', 'include_hash', default="none")
++
+                 downloader = AnnaDownloader(
+                     output_dir=DOWNLOAD_PATH,
+                     incomplete_dir=incomplete_dir,
+                     flaresolverr_url=flaresolverr_url if flaresolverr_enabled else None,
+                     flaresolverr_timeout=flaresolverr_timeout_ms,
++                    prefer_title_naming=prefer_title_naming,
++                    include_hash=include_hash,
+                     proxy_config=proxy_config
+                 )
+ 
+diff --git a/src/stacks/downloader/html.py b/src/stacks/downloader/html.py
+index 6929d7f..86b0264 100755
+--- a/src/stacks/downloader/html.py
++++ b/src/stacks/downloader/html.py
+@@ -236,7 +236,12 @@ def _get_download_links_single_domain(d, md5, domain):
+         elif d.include_hash == "prefix":
+             filename = f"{md5} - {filename}"
+         elif d.include_hash == "suffix":
+-            filename = f"{filename} - {md5}"
++            # Insert hash before the extension to preserve file type
++            stem, _, ext = filename.rpartition('.')
++            if stem:
++                filename = f"{stem} - {md5}.{ext}"
++            else:
++                filename = f"{md5} - {filename}"
+ 
+ 
+         links = []
+diff --git a/src/stacks/server/queue.py b/src/stacks/server/queue.py
+index f249639..2dad09a 100755
+--- a/src/stacks/server/queue.py
++++ b/src/stacks/server/queue.py
+@@ -185,6 +185,49 @@ class DownloadQueue:
+             self.logger.info(f"Retrying failed download: {md5}")
+             return True, "Added to queue for retry"
+ 
++    def retry_all_failed(self):
++        """
++        Retry ALL failed downloads by removing them from history
++        and re-adding them to the queue.
++
++        Originally only a single-item retry existed (retry_failed).
++        This method handles bulk retry in one pass.
++
++        Returns:
++            Tuple of (success: bool, message: str, count: int)
++        """
++        with self.lock:
++            # Collect all failed items
++            failed_items = [
++                item for item in self.history
++                if not item.get('success', False)
++            ]
++            count = len(failed_items)
++
++            if count == 0:
++                return True, "No failed downloads to retry", 0
++
++            # Remove all failed items from history and add to queue
++            failed_md5s = {item['md5'] for item in failed_items}
++            self.history = [
++                item for item in self.history
++                if item['md5'] not in failed_md5s
++            ]
++
++            for item in failed_items:
++                new_item = {
++                    'md5': item['md5'],
++                    'source': 'retry',
++                    'added_at': datetime.now().isoformat(),
++                    'status': 'queued',
++                    'subfolder': item.get('subfolder')
++                }
++                self.queue.append(new_item)
++
++            self.save()
++            self.logger.info(f"Retrying all failed downloads: {count} item(s)")
++            return True, f"Retrying {count} failed download(s)", count
++
+     def requeue_current(self):
+         """Move current download back to front of queue"""
+         with self.lock:
+diff --git a/web/css/main.css b/web/css/main.css
+index 363d6d3..6cf5a83 100755
+--- a/web/css/main.css
++++ b/web/css/main.css
+@@ -211,6 +211,9 @@ h2 {
+   height: 0.9em;
+   vertical-align: -0.125em;
+ }
++[data-icon][data-icon=refresh-line]:before {
++  content: "\f064";
++}
+ 
+ .icon {
+   width: 0.8em;
+@@ -536,6 +539,46 @@ header img {
+   font-size: 14px;
+ }
+ 
++.bulk-add-card {
++  display: -webkit-box;
++  display: -ms-flexbox;
++  display: flex;
++  -webkit-box-orient: vertical;
++  -webkit-box-direction: normal;
++      -ms-flex-direction: column;
++          flex-direction: column;
++  gap: 10px;
++  padding: 10px;
++  margin-top: 10px;
++}
++.bulk-add-card textarea {
++  width: 100%;
++  min-height: 120px;
++  padding: 10px;
++  border-radius: 6px;
++  border: 1px solid #bd93f9;
++  background: #181a26;
++  color: #f8f8f2;
++  font-family: inherit;
++  font-size: 13px;
++  resize: vertical;
++  -webkit-box-sizing: border-box;
++          box-sizing: border-box;
++}
++.bulk-add-card textarea:focus {
++  outline: none;
++  border-color: #ff79c6;
++}
++.bulk-add-card .btn-success {
++  -ms-flex-item-align: start;
++      align-self: flex-start;
++}
++.toggle-bulk {
++  font-size: 12px;
++  padding: 4px 8px;
++  cursor: pointer;
++}
++
+ #current-download {
+   display: none;
+ }
+diff --git a/web/index.html b/web/index.html
+index 344f8d4..647bd43 100755
+--- a/web/index.html
++++ b/web/index.html
+@@ -50,7 +50,12 @@
+         <div class="add-item">
+           <div class="card input-row">
+             <input type="text" id="manual-add" placeholder="Enter an Anna's Archive MD5 or URL..." maxlength="256" />
+-            <button data-icon="file-add-line" class="btn btn-success"></button>
++            <button data-icon="file-add-line" class="btn btn-success" title="Add to queue"></button>
++            <button class="btn btn-secondary toggle-bulk" onclick="toggleBulkAdd()" title="Bulk add multiple items">v</button>
++          </div>
++          <div id="bulk-add-section" class="card bulk-add-card" style="display:none;">
++            <textarea id="bulk-add-input" placeholder="Paste MD5 hashes or Anna's Archive URLs, one per line:&#10;&#10;1d6fd221af5b9c9bffbd398041013de8&#10;https://annas-archive.gd/md5/2e8fc4b...&#10;3a9f1c7e..." rows="6"></textarea>
++            <button data-icon="file-add-line" class="btn btn-success" onclick="bulkAddDownloads()">Add All</button>
+           </div>
+         </div>
+ 
+@@ -101,6 +106,7 @@
+           <section class="card">
+             <div class="card-header">
+               <h2>Recent History <span class="badge" id="history-count">0</span></h2>
++              <button class="btn btn-warning" data-icon="refresh-line" onclick="retryAllFailed()" title="Retry all failed downloads"></button>
+               <button class="btn btn-danger" data-icon="delete-bin-line" onclick="clearHistory()"></button>
+             </div>
+             <div id="history-list" class="list">
+diff --git a/web/script/app.js b/web/script/app.js
+index 78b421d..3db0cc8 100755
+--- a/web/script/app.js
++++ b/web/script/app.js
+@@ -414,6 +414,108 @@ function addDownload() {
+     });
+ }
+ 
++/*
++ * toggleBulkAdd() and bulkAddDownloads() added for bulk-add feature.
++ * Previously only single-item add was available (addDownload above).
++ * Users can now paste multiple MD5s/URLs into a textarea and add them all at once.
++ */
++function toggleBulkAdd() {
++  const section = document.getElementById("bulk-add-section");
++  if (section) {
++    section.style.display = section.style.display === "none" ? "flex" : "none";
++  }
++}
++
++function bulkAddDownloads() {
++  const textarea = document.getElementById("bulk-add-input");
++  const value = textarea.value.trim();
++
++  if (!value) {
++    toasts.show({
++      title: "Bulk Add",
++      message: "Please enter MD5 hashes or URLs, one per line",
++      type: "error",
++    });
++    return;
++  }
++
++  const lines = value.split("\n");
++  const items = [];
++  const invalidLines = [];
++
++  for (let i = 0; i < lines.length; i++) {
++    const line = lines[i].trim();
++    if (!line) continue;
++
++    const md5 = extractMD5(line);
++    if (md5) {
++      items.push({ md5: md5, source: "manual" });
++    } else {
++      invalidLines.push((i + 1) + ": " + line.substring(0, 50));
++    }
++  }
++
++  if (items.length === 0) {
++    toasts.show({
++      title: "Bulk Add",
++      message: "No valid MD5 hashes found in input",
++      type: "error",
++    });
++    return;
++  }
++
++  apiFetch("/api/queue/add_bulk", {
++    method: "POST",
++    body: JSON.stringify({ items: items }),
++  })
++    .then((r) => {
++      if (r.status === 401 || r.status === 403) {
++        throw new Error("Authentication failed. Please refresh the page.");
++      }
++      if (!r.ok) {
++        throw new Error(`HTTP ${r.status}: ${r.statusText}`);
++      }
++      return r.json();
++    })
++    .then((data) => {
++      if (data.added > 0) {
++        textarea.value = "";
++        if (data.skipped > 0) {
++          toasts.show({
++            title: "Bulk Add",
++            message: `Added ${data.added}, skipped ${data.skipped} (already in queue)` + (invalidLines.length > 0 ? `, ${invalidLines.length} invalid` : ""),
++            type: "success",
++          });
++        } else {
++          toasts.show({
++            title: "Bulk Add",
++            message: `Successfully added ${data.added} item(s) to queue` + (invalidLines.length > 0 ? ` (${invalidLines.length} invalid lines skipped)` : ""),
++            type: "success",
++          });
++        }
++        updateStatus();
++      } else {
++        toasts.show({
++          title: "Bulk Add",
++          message: data.message || "Failed to add items",
++          type: "error",
++        });
++      }
++
++      if (invalidLines.length > 0 && data.added > 0) {
++        console.warn("Invalid lines in bulk add:", invalidLines);
++      }
++    })
++    .catch((err) => {
++      console.error("Failed to bulk add:", err);
++      toasts.show({
++        title: "Bulk Add",
++        message: "Error: " + err.message,
++        type: "error",
++      });
++    });
++}
++
+ // ============================================================================
+ // API FUNCTIONS - HISTORY
+ // ============================================================================
+@@ -445,6 +547,34 @@ function retryFailed(md5) {
+     .catch((err) => console.error("Failed to retry download:", err));
+ }
+ 
++/*
++ * Added retryAllFailed() for bulk retry of all failed downloads at once.
++ * Previously only single-item retry was possible (retryFailed above).
++ * Users can now retry hundreds of failed downloads with one click.
++ */
++function retryAllFailed() {
++  if (!confirm("Retry all failed downloads?")) return;
++  apiFetch("/api/history/retry_all", { method: "POST" })
++    .then((r) => r.json())
++    .then((data) => {
++      if (data.success) {
++        toasts.show({
++          title: "Retry All",
++          message: data.message || `Retrying ${data.count} download(s)`,
++          type: "success",
++        });
++        updateStatus();
++      } else {
++        toasts.show({
++          title: "Retry All",
++          message: data.message || "Failed to retry",
++          type: "error",
++        });
++      }
++    })
++    .catch((err) => console.error("Failed to retry all:", err));
++}
++
+ // ============================================================================
+ // API FUNCTIONS - SETTINGS
+ // ============================================================================

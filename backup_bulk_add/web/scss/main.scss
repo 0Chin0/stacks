@@ -1,0 +1,24 @@
+// ============================================================================
+// MAIN SCSS FILE
+// Stacks Download Manager - Dracula Theme
+// ============================================================================
+
+// Base styles (variables and mixins are loaded via @use in individual files)
+@use 'base/fonts';
+@use 'base/icons';
+
+// Layout
+@use 'layout/foundation';
+
+// Components - Order doesn't matter since they're modular
+@use 'components/buttons';
+@use 'components/cards';
+@use 'components/console';
+@use 'components/download';
+@use 'components/footer';
+@use 'components/lists';
+@use 'components/login';
+@use 'components/navigator';
+@use 'components/settings';
+@use 'components/tag-input';
+@use 'components/toast';

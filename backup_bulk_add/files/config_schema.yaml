@@ -1,0 +1,114 @@
+server:
+  host:
+    types: [IP, URL]
+    default: "0.0.0.0"
+  port:
+    types: [INTEGER]
+    default: 7788
+    min: 0
+    max: 65535
+
+login:
+  username:
+    types: [STRING]
+    default: USERNAME
+    max_length: 64
+  password:
+    types: [BCRYPTHASH]
+    default: HASH_PASSWORD
+  disable:
+    types: [BOOL]
+    default: false
+
+api:
+  key:
+    types: [SECRET_KEY, NULL]
+    default: null
+  downloader_key:
+    types: [SECRET_KEY, NULL]
+    default: null
+  session_secret:
+    types: [SECRET_KEY]
+    default: GENERATE_SECRET_KEY
+
+downloads:
+  delay:
+    types: [INTEGER]
+    default: 2
+    min: 0
+    max: 300
+  retry_count:
+    types: [INTEGER]
+    default: 3
+    min: 0
+    max: 10
+  resume_attempts:
+    types: [INTEGER]
+    default: 3
+    min: 0
+    max: 10
+  prefer_title_naming:
+    types: [BOOL]
+    default: false
+  include_hash:
+    types: [INCLUDE_HASH]
+    default: "none"
+  incomplete_folder_path:
+    types: [PATH]
+    default: "/download/incomplete"
+    max_length: 128
+  subdirectories:
+    types: [PATH_LIST]
+    default: null
+
+fast_download:
+  enabled:
+    types: [BOOL]
+    default: false
+  key:
+    types: [STRING, NULL]
+    default: null
+    max_length: 256
+
+flaresolverr:
+  enabled:
+    types: [BOOL]
+    default: false
+  url:
+    types: [IP, URL, NULL]
+    default: FLARESOLVERR
+    max_length: 256
+  timeout:
+    types: [INTEGER]
+    default: 60
+    min: 10
+    max: 600
+
+proxy:
+  enabled:
+    types: [BOOL]
+    default: false
+  url:
+    types: [URL, NULL]
+    default: null
+    max_length: 256
+  username:
+    types: [STRING, NULL]
+    default: null
+    max_length: 128
+  password:
+    types: [STRING, NULL]
+    default: null
+    max_length: 128
+
+queue:
+  max_history:
+    types: [INTEGER]
+    default: 100
+    min: 0
+    max: 100000
+
+logging:
+  level:
+    types: [LOGGING]
+    default: "INFO"

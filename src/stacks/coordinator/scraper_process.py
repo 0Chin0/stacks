@@ -107,11 +107,17 @@ def scraper_process(config_path: Path, stop_event: Event) -> None:
                     'password': config.get('proxy', 'password')
                 }
 
+                # Get file naming config (was missing in scraper — only download_worker had it)
+                prefer_title_naming = config.get('downloads', 'prefer_title_naming', default=False)
+                include_hash = config.get('downloads', 'include_hash', default="none")
+
                 downloader = AnnaDownloader(
                     output_dir=DOWNLOAD_PATH,
                     incomplete_dir=incomplete_dir,
                     flaresolverr_url=flaresolverr_url if flaresolverr_enabled else None,
                     flaresolverr_timeout=flaresolverr_timeout_ms,
+                    prefer_title_naming=prefer_title_naming,
+                    include_hash=include_hash,
                     proxy_config=proxy_config
                 )
 

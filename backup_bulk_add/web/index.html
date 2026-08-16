@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Stacks - Download Manager</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css', v=TIMESTAMP) }}" />
+    <link rel="icon" type="image/svg+xml" href="./images/icon.svg" />
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <img src="./images/logo.svg" />
+      </header>
+
+      <nav class="tabs">
+        <!-- Main Tabs -->
+        <div>
+          <button class="tab-button active" data-tab="downloads" data-icon="file-download"></button>
+          <button class="tab-button" data-tab="settings" data-icon="settings-3"></button>
+          <button class="tab-button" data-tab="console" data-icon="terminal-box"></button>
+        </div>
+
+        <!-- Current Status -->
+        <div class="stats">
+          <div class="stat-card">
+            <div class="stat-value" id="stat-queue">0</div>
+            <div class="stat-label">Queue</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="stat-success">0</div>
+            <div class="stat-label">Finished</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value error" id="stat-failed">0</div>
+            <div class="stat-label">Failed</div>
+          </div>
+          <div class="stat-card hidden" id="stat-fast-card">
+            <div class="stat-value cyan" id="stat-fast">0/0</div>
+            <div class="stat-label">Fast Downloads</div>
+          </div>
+        </div>
+        <div class="tabs__actions">
+          <a href="https://github.com/zelestcarlyone/stacks-docker"><div id="version" class="version">Version 1.0.0</div></a>
+          <a href="/logout" class="btn btn-secondary btn--logout">Logout</a>
+        </div>
+      </nav>
+
+      <div id="downloads-tab" class="tab-content active">
+        <div class="add-item">
+          <div class="card input-row">
+            <input type="text" id="manual-add" placeholder="Enter an Anna's Archive MD5 or URL..." maxlength="256" />
+            <button data-icon="file-add-line" class="btn btn-success"></button>
+          </div>
+        </div>
+
+        <!-- Current Download -->
+        <div id="current-download">
+          <div class="current-download">
+            <div class="current-download__header">
+              <h2>Currently Downloading</h2>
+              <div class="current-download__actions">
+                <button class="btn btn-primary" data-icon="pause-circle-line" id="current-cancel-btn" onclick="cancelCurrent()" title="Pause download"></button>
+                <button class="btn btn-danger" data-icon="file-close-line" id="current-remove-btn" onclick="removeCurrent()" title="Cancel and remove"></button>
+              </div>
+            </div>
+            <div class="title" id="current-title">Loading...</div>
+            <span class="item-subfolder" id="current-subfolder"></span>
+            <div class="md5" id="current-md5"></div>
+            <div class="status-message" id="current-status"></div>
+            <div class="progress-container">
+              <div class="progress-text" id="current-progress-text">
+                <span class="progress-bytes">0 B / 0 B</span>
+                <span class="progress-percent">(0%)</span>
+                <span class="progress-speed">(0 B/s)</span>
+              </div>
+              <div class="progress-bar" id="current-progress-bar" style="width: 0%"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card-holder">
+          <!-- Queue -->
+          <section class="card">
+            <div class="card-header">
+              <h2>Queue <span class="badge" id="queue-count">0</span></h2>
+              <div class="card-header__actions">
+                <button class="btn" data-icon="pause-circle-line" id="pause-btn" onclick="togglePause()"></button>
+                <button class="btn btn-danger" data-icon="delete-bin-line" onclick="clearQueue()"></button>
+              </div>
+            </div>
+            <div id="queue-list" class="list">
+              <div class="empty-state">
+                <div class="empty-state-icon" data-icon="import"></div>
+                <div>Queue is empty</div>
+              </div>
+            </div>
+          </section>
+
+          <!-- History -->
+          <section class="card">
+            <div class="card-header">
+              <h2>Recent History <span class="badge" id="history-count">0</span></h2>
+              <button class="btn btn-warning" data-icon="refresh-line" onclick="retryAllFailed()" title="Retry all failed downloads"></button>
+              <button class="btn btn-danger" data-icon="delete-bin-line" onclick="clearHistory()"></button>
+            </div>
+            <div id="history-list" class="list">
+              <div class="empty-state">
+                <div class="empty-state-icon" data-icon="book-2"></div>
+                <div>No download history yet</div>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+
+      <!-- Settings Tab -->
+      <div id="settings-tab" class="tab-content">
+        <div class="settings-container">
+          <nav class="settings-nav">
+            <ul>
+              <li>Authentification</li>
+              <li>Downloads</li>
+              <li>FlareSolverr</li>
+              <li>Proxy</li>
+              <li>Queue</li>
+              <li>Logging</li>
+            </ul>
+          </nav>
+          <section class="settings-card">
+            <div class="card-header">
+              <h2>Settings</h2>
+              <button class="btn btn-success" onclick="saveSettings()">Save Settings</button>
+            </div>
+
+            <!-- Authentification -->
+            <div class="settings-content" data-setting="authentification">
+              <div class="settings-section">
+                <h3>
+                  <div class="title-switch">
+                    <label class="switch">
+                      <input type="checkbox" id="setting-authentication-enabled" />
+                      <span class="slider"></span>
+                      <span class="label"></span>
+                    </label>
+                    Login
+                  </div>
+                </h3>
+                <div class="settings-group">
+                  <label for="setting-username">Username</label>
+                  <input type="text" id="setting-username" placeholder="admin" maxlength="64" />
+                </div>
+                <div class="settings-group">
+                  <label for="setting-new-password">New Password (leave blank to keep current)</label>
+                  <input type="password" id="setting-new-password" placeholder="Enter new password" maxlength="256" />
+                </div>
+                <div class="settings-section">
+                  <h3>Downloader API Key</h3>
+                  <div class="settings-group">
+                    <label>Your Downloader API Key (default, auto-generated)</label>
+                    <div class="settings-group__actions">
+                      <input type="text" id="display-downloader-key" readonly value="Loading..." />
+                      <button class="btn btn-secondary" data-clipboard-action="copy" data-icon="clipboard-line" data-clipboard-target="#display-downloader-key"></button>
+                      <button class="btn btn-success" onclick="regenerateApiKey('downloader')">Generate New</button>
+                      <button class="btn btn-danger" onclick="disableApiKey('downloader')">Disable</button>
+                    </div>
+                    <div class="comment">Default API key for Tampermonkey and external tools. Can add items to queue and list subdirectories. Auto-generated on setup. Safe to share with others.</div>
+                  </div>
+                </div>
+                <div class="settings-section">
+                  <h3>Admin API Key (Optional)</h3>
+                  <div class="settings-group">
+                    <label>Admin API Key (full access, optional)</label>
+                    <div class="settings-group__actions">
+                      <input type="text" id="display-api-key" readonly value="Loading..." />
+                      <button class="btn btn-secondary" data-clipboard-action="copy" data-icon="clipboard-line" data-clipboard-target="#display-api-key"></button>
+                      <button class="btn btn-success" onclick="regenerateApiKey('admin')">Generate New</button>
+                      <button class="btn btn-danger" onclick="disableApiKey('admin')">Disable</button>
+                    </div>
+                    <div class="comment">Optional key for full access to all API endpoints including admin functions. Only generate if you need unrestricted API access. Keep it private!</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Downloads -->
+            <div class="settings-content" data-setting="downloads">
+              <div class="settings-section">
+                <h3>Downloads</h3>
+                <div class="settings-group">
+                  <label for="setting-delay">Delay between downloads (seconds)</label>
+                  <input type="number" id="setting-delay" min="0" max="300" value="2" />
+                </div>
+                <div class="settings-group">
+                  <label for="setting-retry-count">Retry attempts for failed downloads</label>
+                  <input type="number" id="setting-retry-count" min="1" max="10" value="3" />
+                </div>
+                <div class="settings-group">
+                  <label for="setting-resume-attempts">Resume attempts for interrupted downloads</label>
+                  <input type="number" id="setting-resume-attempts" min="1" max="10" value="3" />
+                </div>
+                <div class="settings-group">
+                  <label for="setting-incomplete-folder-path">Incomplete folder path</label>
+                  <input type="text" id="setting-incomplete-folder-path" placeholder="/download/incomplete" maxlength="128" />
+                  <div class="comment">Path where partial downloads are stored. Remember to add a volume mount if you change this from the default one.</div>
+                </div>
+                <div class="settings-group">
+                  <h3>Subdirectories</h3>
+                  <div id="setting-subdirectories"></div>
+                  <div class="comment">Subdirectories available for downloads. These will appear as options in the Tampermonkey extension dropdown.</div>
+                </div>
+                <div class="settings-group">
+                  <h3>File naming</h3>
+                  <label class="toggle-button">
+                    <input type="checkbox" id="setting-prefer-title-naming" />
+                    <span class="checkmark"></span>
+                    <span>Prefer title-based filenames over metadata filenames</span>
+                  </label>
+                  <div class="comment">When enabled, files will be named using the book title from the page instead of the original filepath metadata.</div>
+
+                  <label for="setting-include-hash">MD5 hash in filename</label>
+                  <select id="setting-include-hash">
+                    <option value="none">Don't include hash</option>
+                    <option value="prefix">Include as prefix (hash - filename)</option>
+                    <option value="suffix">Include as suffix (filename - hash)</option>
+                  </select>
+                  <div class="comment">Add the MD5 hash to filenames for easier identification and deduplication.</div>
+                </div>
+              </div>
+
+              <div class="settings-section">
+                <h3>
+                  <div class="title-switch">
+                    <label class="switch">
+                      <input type="checkbox" id="setting-fast-enabled" />
+                      <span class="slider"></span>
+                      <span class="label"></span>
+                    </label>
+                    Fast Download
+                  </div>
+                </h3>
+
+                <div class="settings-group">
+                  <label for="setting-fast-key">Secret Key</label>
+                  <input type="password" id="setting-fast-key" placeholder="Your Anna's Archive secret key" />
+
+                  <button class="btn btn-secondary btn--spaced" onclick="testFastKey()">Test Key</button>
+                  <div id="key-test-result" class="test-result"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Flaresolverr -->
+            <div class="settings-content" data-setting="flaresolverr">
+              <div class="settings-section">
+                <h3>
+                  <div class="title-switch">
+                    <label class="switch">
+                      <input type="checkbox" id="setting-flaresolverr-enabled" />
+                      <span class="slider"></span>
+                      <span class="label"></span>
+                    </label>
+                    FlareSolverr (Cloudflare Bypass)
+                  </div>
+                </h3>
+                <div class="settings-group">
+                  <label for="setting-flaresolverr-url">FlareSolverr URL</label>
+                  <input type="text" id="setting-flaresolverr-url" placeholder="http://localhost:8191" />
+                  <div class="comment">URL to your FlareSolverr instance (default: http://localhost:8191)</div>
+
+                  <label for="setting-flaresolverr-timeout">Timeout (seconds)</label>
+                  <input type="number" id="setting-flaresolverr-timeout" min="10" max="300" value="60" />
+                  <div class="comment">Maximum time to wait for FlareSolverr to solve challenges (10-300 seconds)</div>
+
+                  <button class="btn btn-secondary btn--spaced" onclick="testFlaresolverr()">Test Connection</button>
+                  <div id="flaresolverr-test-result" class="test-result"></div>
+                </div>
+              </div>
+            </div>
+            <!-- Proxy -->
+            <div class="settings-content" data-setting="proxy">
+              <div class="settings-section">
+                <h3>
+                  <div class="title-switch">
+                    <label class="switch">
+                      <input type="checkbox" id="setting-proxy-enabled" />
+                      <span class="slider"></span>
+                      <span class="label"></span>
+                    </label>
+                    HTTP Proxy
+                  </div>
+                </h3>
+                <div class="settings-group">
+                  <label for="setting-proxy-url">Proxy URL</label>
+                  <input type="text" id="setting-proxy-url" placeholder="http://proxy.example.com:8080" />
+                  <div class="comment">HTTP or HTTPS proxy URL (e.g., http://proxy.example.com:8080)</div>
+
+                  <label for="setting-proxy-username">Username (optional)</label>
+                  <input type="text" id="setting-proxy-username" placeholder="Leave blank if not required" maxlength="128" />
+
+                  <label for="setting-proxy-password">Password (optional)</label>
+                  <input type="password" id="setting-proxy-password" placeholder="Leave blank if not required" maxlength="128" />
+
+                  <button class="btn btn-secondary btn--spaced" onclick="testProxy()">Test Connection</button>
+                  <div id="proxy-test-result" class="test-result"></div>
+                </div>
+              </div>
+            </div>
+            <!-- Queue -->
+            <div class="settings-content" data-setting="queue">
+              <div class="settings-section">
+                <h3>Queue</h3>
+                <div class="settings-group">
+                  <label for="setting-max-history">Maximum history items (0 = unlimited)</label>
+                  <input type="number" id="setting-max-history" min="0" max="1000" value="100" />
+                </div>
+              </div>
+            </div>
+            <!-- Logging -->
+            <div class="settings-content" data-setting="logging">
+              <div class="settings-section">
+                <h3>Logging</h3>
+                <div class="settings-group">
+                  <label for="setting-log-level">Log Level</label>
+                  <select id="setting-log-level">
+                    <option value="DEBUG">DEBUG</option>
+                    <option value="INFO">INFO</option>
+                    <option value="WARNING">WARNING</option>
+                    <option value="ERROR">ERROR</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+
+      <!-- Console -->
+      <div id="console-tab" class="tab-content">
+        <section class="card">
+          <div id="console">ABC123</div>
+        </section>
+      </div>
+
+      <footer>
+        <p><a href="./tamper/stacks_extension.user.js" target="_blank" data-icon="tampermonkey">Install Tampermonkey Script</a> • <a href="https://github.com/zelestcarlyone/stacks-docker" target="_blank" data-icon="github">Visit GitHub</a></p>
+      </footer>
+    </div>
+
+    <!-- Templates for dynamic content -->
+    <template id="queue-item-template">
+      <div class="list-item">
+        <div class="item-info">
+          <div class="item-title">
+            <span class="item-title-text"></span>
+            <span class="item-filetype"></span>
+            <span class="item-subfolder"></span>
+            <span class="item-status"></span>
+          </div>
+          <div class="item-md5"></div>
+          <div class="item-time"></div>
+        </div>
+        <button class="btn btn-danger" data-icon="file-close-line" onclick=""></button>
+      </div>
+    </template>
+
+    <template id="queue-empty-template">
+      <div class="empty-state">
+        <div class="empty-state-icon" data-icon="import"></div>
+        <div>Queue is empty</div>
+      </div>
+    </template>
+
+    <template id="history-empty-template">
+      <div class="empty-state">
+        <div class="empty-state-icon" data-icon="book-2"></div>
+        <div>No download history yet</div>
+      </div>
+    </template>
+
+    <template id="history-item-template">
+      <div class="list-item">
+        <div class="item-info">
+          <div class="item-title">
+            <span class="item-status-icon"></span>
+            <span class="item-title-text"></span>
+            <span class="item-method-icon"></span>
+            <span class="item-subfolder"></span>
+          </div>
+          <a class="item-link" href="" target="_blank"><span class="item-md5"></span><span data-icon="external-link"></span></a>
+          <div class="item-time"></div>
+          <div class="item-error"></div>
+        </div>
+        <button class="btn btn-secondary retry-btn" data-icon="file-add-line" onclick=""></button>
+      </div>
+    </template>
+
+    <!-- Toast Template -->
+    <template id="toast-template">
+      <div class="toast">
+        <div class="toast-icon"></div>
+        <div class="toast-content">
+          <div class="toast-title"></div>
+          <div class="toast-message"></div>
+        </div>
+        <button class="toast-close" data-icon="close-large"></button>
+        <div class="toast-progress"></div>
+      </div>
+    </template>
+
+    <!-- Log-line template -->
+    <template id="log-line-template">
+      <div class="log-line">
+        <span class="log-date">${date}</span>
+        <span class="log-class">${level}</span>
+        <span class="log-logger">${logger}</span>
+        <span class="log-message">${message}</span>
+      </div>
+    </template>
+
+    <!-- Tag Input Templates -->
+    <template id="tag-input-template">
+      <div class="tag-input-wrapper">
+        <div class="tag-list"></div>
+        <div class="tag-input-row">
+          <input type="text" class="tag-input-field" placeholder="" />
+          <button type="button" class="tag-add-btn btn btn-success" data-icon="folder-add-line"></button>
+        </div>
+      </div>
+      <div class="tag-count"></div>
+    </template>
+
+    <template id="tag-item-template">
+      <div class="tag-item">
+        <span class="tag-text" data-icon="folder"></span>
+        <button type="button" class="tag-remove" data-icon="close-line"></button>
+      </div>
+    </template>
+
+    <!-- Toast Container -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <script src="{{ url_for('static', filename='script/clipboard.min.js', v=TIMESTAMP) }}"></script>
+    <script src="{{ url_for('static', filename='script/toasts.js', v=TIMESTAMP) }}"></script>
+    <script src="{{ url_for('static', filename='script/tag-input.js', v=TIMESTAMP) }}"></script>
+    <script src="{{ url_for('static', filename='script/app.js', v=TIMESTAMP) }}"></script>
+  </body>
+</html>

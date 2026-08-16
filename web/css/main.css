@@ -211,6 +211,9 @@ h2 {
   height: 0.9em;
   vertical-align: -0.125em;
 }
+[data-icon][data-icon=refresh-line]:before {
+  content: "\f064";
+}
 
 .icon {
   width: 0.8em;
@@ -534,6 +537,46 @@ header img {
   background: #181a26;
   color: #f8f8f2;
   font-size: 14px;
+}
+
+.bulk-add-card {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+      -ms-flex-direction: column;
+          flex-direction: column;
+  gap: 10px;
+  padding: 10px;
+  margin-top: 10px;
+}
+.bulk-add-card textarea {
+  width: 100%;
+  min-height: 120px;
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #bd93f9;
+  background: #181a26;
+  color: #f8f8f2;
+  font-family: inherit;
+  font-size: 13px;
+  resize: vertical;
+  -webkit-box-sizing: border-box;
+          box-sizing: border-box;
+}
+.bulk-add-card textarea:focus {
+  outline: none;
+  border-color: #ff79c6;
+}
+.bulk-add-card .btn-success {
+  -ms-flex-item-align: start;
+      align-self: flex-start;
+}
+.toggle-bulk {
+  font-size: 12px;
+  padding: 4px 8px;
+  cursor: pointer;
 }
 
 #current-download {

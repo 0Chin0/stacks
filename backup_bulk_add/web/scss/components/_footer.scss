@@ -1,0 +1,23 @@
+// ============================================================================
+// FOOTER
+// ============================================================================
+
+@use '../base' as *;
+
+footer {
+  text-align: center;
+  padding: $spacing-lg;
+  color: $comment;
+  margin-top: $spacing-xxl;
+  border-top: $border-thin solid $comment;
+
+  a {
+    color: $cyan;
+    text-decoration: none;
+
+    &:hover {
+      color: $purple;
+      text-decoration: underline;
+    }
+  }
+}
